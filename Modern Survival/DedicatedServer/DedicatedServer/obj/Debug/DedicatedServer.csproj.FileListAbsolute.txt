@@ -1,0 +1,8 @@
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe.config
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.pdb
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\KaymakGames.dll
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csprojResolveAssemblyReference.cache
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csproj.CoreCompileInputs.cache
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.exe
+C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.pdb
