@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DedicatedServer
+public enum PacketType
 {
-    public enum PacketType
-    {
-        PlayerJoined = 1,
-        PlayerData,
-        PlayerMove,
-        PlayerPing,
-        SyncdObjectMove
-    }
+    PlayerJoined = 1,
+    PlayerLeft,
+    PlayerData,
+    PlayerMove,
+    PlayerPing,
+    SyncdObject,
+    ItemData,
+    GameRules,
+    Damage
 }

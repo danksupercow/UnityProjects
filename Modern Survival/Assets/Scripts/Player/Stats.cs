@@ -5,9 +5,9 @@ using UnityEngine.Networking;
 using UnityEngine.AI;
 
 public class Stats : MonoBehaviour {
+    //Local Stats Instance
     public static Stats instance;
-
-    public float health;
+    
     public PlayerController isPlayer;
     public bool isDead;
     public bool isBleeding;
@@ -16,6 +16,8 @@ public class Stats : MonoBehaviour {
     private AudioClip prevAudio;
     [HideInInspector]
     public AudioSource audioSource;
+
+    private ViewController viewController;
     private float timer;
 
     //Blood Shit
@@ -23,21 +25,11 @@ public class Stats : MonoBehaviour {
     public int bleedDelay = 2;
     public float bleedThresholdPercent = 0.1f;
 
-    private void Awake()
-    {
-        instance = this;
-    }
-
-    private void Start()
-    {
-        isPlayer = GetComponent<PlayerController>();
-        audioSource = GetComponent<AudioSource>();
-
-        if(isPlayer)
-        {
-            //health = Game.instance.maxPlayerHealth;
-        }
-    }
+    //Survival Variables
+    public float currentThirst, maxThirst, currentHunger, maxHunger;
+    public float maxHealth;
+    public float health;
+    
     private void Update()
     {
         if(isBleeding)
@@ -50,6 +42,22 @@ public class Stats : MonoBehaviour {
             }
         }
     }
+
+    public void Init()
+    {
+        this.maxHealth = Game.instance.maxPlayerHealth;
+        health = Game.instance.startPlayerHealth;
+        viewController = GetComponent<ViewController>();
+
+
+        if (NetworkManager.connectionID != viewController.connectionID)
+            return;
+
+        instance = this;
+        isPlayer = GetComponent<PlayerController>();
+        audioSource = GetComponent<AudioSource>();
+    }
+
     public void Damage(float value)
     {
         if (isDead)
@@ -61,7 +69,7 @@ public class Stats : MonoBehaviour {
             Die();
             return;
         }
-        if ((value / Game.instance.maxPlayerHealth) >= bleedThresholdPercent)
+        if ((value / maxHealth) >= bleedThresholdPercent)
         {
             isBleeding = true;
         }
@@ -87,6 +95,16 @@ public class Stats : MonoBehaviour {
     {
         health += value;
     }
+
+    private void Hunger()
+    {
+
+    }
+    private void Thirst()
+    {
+
+    }
+
     public void Die()
     {
         isDead = true;
@@ -108,7 +126,7 @@ public class Stats : MonoBehaviour {
     {
         isDead = false;
         isBleeding = false;
-        SetHealth(Game.instance.maxPlayerHealth);
+        SetHealth(maxHealth);
     }
 
     private void PlayRandomOgSound(AudioClip[] clips)

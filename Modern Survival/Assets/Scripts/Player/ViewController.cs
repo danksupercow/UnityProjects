@@ -12,6 +12,7 @@ public class ViewController : MonoBehaviour {
     public static Ray playerRay;
     private WeaponBase currentWeapon;
     private ExplosiveBase currentExplosive;
+    public int connectionID;
 
     Stats localStats;
 
@@ -19,9 +20,13 @@ public class ViewController : MonoBehaviour {
 
     private void Start()
     {
+        localStats = GetComponent<Stats>();
+
+        if (connectionID != NetworkManager.connectionID)
+            return;
+
         instance = this;
         cam = GetComponentInChildren<Camera>();
-        localStats = GetComponent<Stats>();
         if(hand.childCount > 0)
         {
             currentWeapon = hand.GetComponentInChildren<WeaponBase>();
@@ -40,6 +45,9 @@ public class ViewController : MonoBehaviour {
 
     private void Update()
     {
+        if (connectionID != NetworkManager.connectionID)
+            return;
+
         playerRay = cam.ScreenPointToRay(new Vector2(Screen.width / 2, Screen.height / 2));
         if(currentWeapon == null && hand.childCount > 0)
         {

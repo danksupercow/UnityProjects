@@ -1,18 +1,29 @@
 ﻿public enum PacketType
 {
     PlayerJoined = 1,
+    PlayerLeft,
     PlayerData,
     PlayerMove,
     PlayerPing,
-    SyncdObjectMove
+    SyncdObject,
+    ItemData,
+    GameRules,
+    Damage
 }
 
-public enum ItemType
+public struct ItemType
 {
-    None,
-    Item,
-    Consumable,
-    Wearable,
-    Component,
-    Resource
+    public const string None = "none";
+    public const string Item = "item";
+    public const string Consumable = "consumable";
+    public const string Wearable = "wearable";
+    public const string Component = "component";
+    public const string Resource = "resource";
+}
+
+public struct ConsumeType
+{
+    public const string Health = "health";
+    public const string Hunger = "hunger";
+    public const string Thirst = "thirst";
 }

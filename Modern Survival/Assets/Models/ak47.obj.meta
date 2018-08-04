@@ -1,9 +1,7 @@
 fileFormatVersion: 2
 guid: 3c0b9e8f8fe8dcd448cd032d9f3cfcf6
-timeCreated: 1531724709
-licenseType: Free
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
     100002: default
@@ -11,6 +9,7 @@ ModelImporter:
     400002: default
     2100000: None
     2100002: AK47_Mat
+    2100004: defaultMat
     2300000: default
     3300000: default
     4300000: default
@@ -33,6 +32,7 @@ ModelImporter:
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
@@ -64,6 +64,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

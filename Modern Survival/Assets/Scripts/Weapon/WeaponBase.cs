@@ -89,4 +89,9 @@ public abstract class WeaponBase : MonoBehaviour
     {
         readyToFire = true;
     }
+
+    protected void DealNetworkedDamage(int connectionID, float damage)
+    {
+        ClientTCP.SendDamage(connectionID, damage);
+    }
 }

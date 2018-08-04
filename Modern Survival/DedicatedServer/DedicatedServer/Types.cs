@@ -4,17 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DedicatedServer
+public class Types
 {
-    class Types
-    {
-        public static TempPlayerRec[] TempPlayer = new TempPlayerRec[Constants.MAX_PLAYERS];
+    public static TempPlayerRec[] TempPlayer;
 
-        public struct TempPlayerRec
-        {
-            public ByteBuffer Buffer;
-            public long DataBytes;
-            public long DataPackets;
-        }
+    public struct TempPlayerRec
+    {
+        public ByteBuffer Buffer;
+        public long DataBytes;
+        public long DataPackets;
     }
 }

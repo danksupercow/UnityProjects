@@ -12,15 +12,12 @@ public class ClientTCP
     private static NetworkStream myStream;
     private byte[] asyncBuff;
 
+    private static string currentIP;
+    private static int currentPort = -1;
+
     public void Connect()
     {
-        playerSocket = new TcpClient();
-        playerSocket.ReceiveBufferSize = maxBufferSize;
-        playerSocket.SendBufferSize = maxBufferSize;
-        playerSocket.NoDelay = false;
-        asyncBuff = new byte[8192];
-        playerSocket.BeginConnect("127.0.0.1", 5555, new AsyncCallback(ConnectCallback), playerSocket);
-        connecting = true;
+        Connect("127.0.0.1", 5555);
     }
 
     public void Connect(string ip, int port)
@@ -31,11 +28,18 @@ public class ClientTCP
         playerSocket.NoDelay = false;
         asyncBuff = new byte[8192];
         playerSocket.BeginConnect(ip, port, new AsyncCallback(ConnectCallback), playerSocket);
+        NetworkManager.RegisterServer(ip, port);
+
+        currentIP = ip;
+        currentPort = port;
+
         connecting = true;
     }
 
     public void Disconnect()
     {
+        currentIP = string.Empty;
+        currentPort = -1;
         playerSocket.Close();
     }
 
@@ -46,6 +50,8 @@ public class ClientTCP
             playerSocket.EndConnect(ar);
             if(playerSocket.Connected == false)
             {
+                currentIP = string.Empty;
+                currentPort = -1;
                 connected = false;
                 connecting = false;
                 return;
@@ -58,10 +64,13 @@ public class ClientTCP
                 connected = true;
                 connecting = false;
                 Debug.Log("[Client] Successfully connected to server!");
+
             }
         }
         catch
         {
+            currentIP = string.Empty;
+            currentPort = -1;
             connecting = false;
             connected = false;
             Debug.LogError("Unable to connect to server.");
@@ -98,6 +107,21 @@ public class ClientTCP
         myStream.Write(buffer.ToArray(), 0, buffer.ToArray().Length);
     }
 
+    public static void SendPlayerData()
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.PlayerData);
+        buffer.WriteString("NAME");
+        buffer.WriteString(NetworkManager.FetchServerDataUID(currentIP, currentPort));
+        buffer.WriteFloat(Stats.instance.health);
+        buffer.WriteFloat(Stats.instance.currentHunger);
+        buffer.WriteFloat(Stats.instance.currentThirst);
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+
+    }
+
     public static void SendMovement(Vector3 pos, Quaternion rot)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -118,4 +142,14 @@ public class ClientTCP
         buffer.Dispose();
     }
 
+    public static void SendDamage(int connectionID, float damage)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.Damage);
+        buffer.WriteInteger(connectionID);
+        buffer.WriteFloat(damage);
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
 }

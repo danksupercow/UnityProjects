@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using TMPro;
 
 public class Slot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
     private BaseItem _item;
-    private int slotWeight;
+    private float slotWeight;
     private int currentStack;
 
     private RectTransform rect;
 
-    public TextMeshProUGUI itemName;
-    public TextMeshProUGUI itemAmount;
+    public Text itemName;
+    public Text itemAmount;
     public Sprite itemIcon;
     private Image img;
     public Sprite slotImage;
     public Sprite slotHoverImage;
+
+    public BaseItem Item { get { return _item; } }
 
     private void Start()
     {

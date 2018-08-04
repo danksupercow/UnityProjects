@@ -6,3 +6,12 @@ C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\Dedicated
 C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csproj.CoreCompileInputs.cache
 C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.exe
 C:\Users\Seth\Documents\Unity Projects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.pdb
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe.config
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.pdb
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csprojResolveAssemblyReference.cache
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csproj.CoreCompileInputs.cache
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.exe
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.pdb
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.dll
+D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.xml

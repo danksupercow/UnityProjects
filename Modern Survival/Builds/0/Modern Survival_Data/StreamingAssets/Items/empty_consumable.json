@@ -1,0 +1,13 @@
+{
+    "_slug": "empty_consumable",
+    "_name": "Empty Consumable",
+    "_description": "An empty consumable Item",
+    "_iconPath": "none",
+    "_id": -1,
+    "_weight": 0,
+    "_maxStack": 0,
+    "_type": "consumable",
+    "_replenishment": 0.0,
+    "_consumeType": "",
+	"_stopsBleeding": false
+}

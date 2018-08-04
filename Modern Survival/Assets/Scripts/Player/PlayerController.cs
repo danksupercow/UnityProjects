@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -33,16 +35,19 @@ public class PlayerController : MonoBehaviour {
     //Private
     private Camera cam;
     public Camera Camera { get { return cam; } }
-
+    
     private void Start()
     {
         instance = this;
+        
+        ClientTCP.SendPlayerData();
 
         cam = GetComponentInChildren<Camera>();
         rb = GetComponent<Rigidbody>();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        
     }
 
     private void Update()
@@ -133,7 +138,7 @@ public class PlayerController : MonoBehaviour {
     private void NetSendMove()
     {
 
-        if(Vector3.Distance(lastPosition, transform.position) >= 0.2f && NetworkManager.instance != null && NetworkManager.instance.Socket != null)
+        if(Vector3.Distance(lastPosition, transform.position) >= 0.2f && NetworkManager.instance != null && NetworkManager.Socket != null)
         {
             ClientTCP.SendMovement(transform.position, transform.rotation);
             lastPosition = transform.position;

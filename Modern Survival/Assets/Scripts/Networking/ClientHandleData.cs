@@ -19,8 +19,12 @@ public class ClientHandleData : MonoBehaviour
         Debug.Log("[Client] Initializing network messages...");
         packets = new Dictionary<long, Packet_>();
         packets.Add((long)PacketType.PlayerJoined, PACKET_PlayerJoined);
+        packets.Add((long)PacketType.PlayerLeft, PACKET_PlayerLeft);
         packets.Add((long)PacketType.PlayerData, PACKET_PlayerData);
         packets.Add((long)PacketType.PlayerMove, PACKET_PlayerMove);
+        packets.Add((long)PacketType.ItemData, PACKET_ITEMDATA);
+        packets.Add((long)PacketType.GameRules, PACKET_GameRules);
+        packets.Add((long)PacketType.Damage, PACKET_Damage);
         Debug.Log("[Client] Network messages successfully initialized.");
     }
 
@@ -106,10 +110,22 @@ public class ClientHandleData : MonoBehaviour
         buffer = new ByteBuffer();
         buffer.WriteBytes(data);
         packetnum = buffer.ReadLong();
-        NetworkManager.instance.connectionID = buffer.ReadInteger();
+        NetworkManager.connectionID = buffer.ReadInteger();
         string s = buffer.ReadString();
         Debug.Log(s);
+
         buffer.Dispose();
+    }
+
+    private static void PACKET_PlayerLeft(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        int leftID = buffer.ReadInteger();
+
+        Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+
     }
 
     private static void PACKET_PlayerData(byte[] data)
@@ -134,7 +150,7 @@ public class ClientHandleData : MonoBehaviour
 
         int connectionID = buffer.ReadInteger();
 
-        if (connectionID == NetworkManager.instance.connectionID)
+        if (connectionID == NetworkManager.connectionID)
             return;
 
         float x = buffer.ReadFloat();
@@ -145,9 +161,51 @@ public class ClientHandleData : MonoBehaviour
         float rotY = buffer.ReadFloat();
         float rotZ = buffer.ReadFloat();
 
-        GameObject player = NetworkManager.instance.GetPlayerObjectFromID(connectionID);
+        GameObject player = NetworkManager.GetPlayerObjectFromID(connectionID);
         player.transform.position = new Vector3(x,y,z);
         player.transform.eulerAngles = new Vector3(General.WrapAngle(rotX), General.WrapAngle(rotY), General.WrapAngle(rotZ));
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_ITEMDATA(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        string itemJson = buffer.ReadString();
+
+        InventoryManager.RegisterItem(General.FromJsonString(itemJson));
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_GameRules(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        float maxHealth = buffer.ReadFloat();
+        float startHealth = buffer.ReadFloat();
+        
+        Game.instance.maxPlayerHealth = maxHealth;
+        Game.instance.startPlayerHealth = startHealth;
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_Damage(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        int id = buffer.ReadInteger();
+        float dmg = buffer.ReadFloat();
+
+        NetworkManager.GetPlayerObjectFromID(id).GetComponent<Stats>().Damage(dmg);
 
         buffer.Dispose();
     }

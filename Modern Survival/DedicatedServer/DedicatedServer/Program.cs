@@ -18,14 +18,19 @@ namespace DedicatedServer
 
         static void SetupServer()
         {
-            for (int i = 0; i < Constants.MAX_PLAYERS; i++)
+            Console.WriteLine("Starting Server...");
+
+            ServerTCP.LoadJsonGameRules();
+            Types.TempPlayer = new Types.TempPlayerRec[Constants.GAMERULES.MAX_PLAYER_COUNT];
+
+            ServerTCP.InitNetwork();
+            ServerHandleData.Init();
+
+            for (int i = 0; i < Constants.GAMERULES.MAX_PLAYER_COUNT; i++)
             {
                 ServerTCP.Clients[i] = new Client();
                 Types.TempPlayer[i] = new Types.TempPlayerRec();
             }
-
-            ServerHandleData.Init();
-            ServerTCP.InitNetwork();
         }
 
         static void ConsoleThread()
@@ -39,11 +44,6 @@ namespace DedicatedServer
                 }
                 Console.ReadLine();
             }
-        }
-
-        public static void JoinGame(int connectionID)
-        {
-            ServerTCP.SendInWorld(connectionID);
         }
     }
 }

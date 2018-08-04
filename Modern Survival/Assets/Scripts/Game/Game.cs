@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.Networking;
 
 public class Game : MonoBehaviour
 {
     public static Game instance;
-    public float maxPlayerHealth = 500;
+
+    public float maxPlayerHealth;
+    public float startPlayerHealth;
 
     [Header("Impact Particle Effects")]
     public GameObject fleshImpact;
@@ -36,4 +37,7 @@ public class Game : MonoBehaviour
 
         return rockImpact;
     }
+
+
+
 }

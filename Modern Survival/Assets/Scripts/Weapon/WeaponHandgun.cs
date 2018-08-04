@@ -14,24 +14,17 @@ public class WeaponHandgun : WeaponBase
 
         if(Physics.Raycast(muzzle.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
         {
-            DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
-            if(dh != null)
-            {
-                dh.Damage(damage, transform);
-            }
-            else
-            {
-                Stats s = hit.transform.GetComponent<Stats>();
-                if(s != null)
-                {
-                    s.Damage(damage);
-                }
-            }
+            int id = hit.transform.GetComponent<ViewController>().connectionID;
 
-            Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
-            t.position = hit.point;
-            t.LookAt(transform);
-            t.SetParent(hit.transform);
+            DealNetworkedDamage(id, damage);
+
+            if(Game.instance != null)
+            {
+                Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
+                t.position = hit.point;
+                t.LookAt(transform);
+                t.SetParent(hit.transform);
+            }
         }
     }
 }

@@ -4,117 +4,148 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DedicatedServer
+public class ServerHandleData
 {
-    public class ServerHandleData
+    private delegate void Packet_(long connectionID, byte[] data);
+    private static Dictionary<long, Packet_> packets;
+    private static long pLength;
+
+    public static void Init()
     {
-        private delegate void Packet_(long connectionID, byte[] data);
-        private static Dictionary<long, Packet_> packets;
-        private static long pLength;
+        packets = new Dictionary<long, Packet_>();
+        packets.Add((long)PacketType.PlayerJoined, PACKET_WELCOME);
+        packets.Add((long)PacketType.PlayerMove, PACKET_PLAYERMOVE);
+        packets.Add((long)PacketType.PlayerData, PACKET_PLAYERDATA);
+        packets.Add((long)PacketType.Damage, PACKET_DAMAGE);
+    }
 
-        public static bool pingReceived;
+    public static void HandleData(long connectionID, byte[] data)
+    {
+        byte[] Buffer;
+        Buffer = (byte[])data.Clone();
 
-        public static void Init()
+        if (Types.TempPlayer[connectionID].Buffer == null) Types.TempPlayer[connectionID].Buffer = new ByteBuffer();
+        Types.TempPlayer[connectionID].Buffer.WriteBytes(Buffer);
+
+        if (Types.TempPlayer[connectionID].Buffer.Count() == 0)
         {
-            packets = new Dictionary<long, Packet_>();
-            packets.Add((long)PacketType.PlayerJoined, PACKET_WELCOME);
-            packets.Add((long)PacketType.PlayerMove, PACKET_PLAYERMOVE);
+            Types.TempPlayer[connectionID].Buffer.Clear();
+            return;
         }
 
-        public static void HandleData(long connectionID, byte[] data)
+        if (Types.TempPlayer[connectionID].Buffer.Length() >= 4)
         {
-            byte[] Buffer;
-            Buffer = (byte[])data.Clone();
-
-            if (Types.TempPlayer[connectionID].Buffer == null) Types.TempPlayer[connectionID].Buffer = new ByteBuffer();
-            Types.TempPlayer[connectionID].Buffer.WriteBytes(Buffer);
-
-            if(Types.TempPlayer[connectionID].Buffer.Count() == 0)
+            pLength = Types.TempPlayer[connectionID].Buffer.ReadLong(false);
+            if (pLength <= 0)
             {
                 Types.TempPlayer[connectionID].Buffer.Clear();
                 return;
             }
+        }
 
-            if(Types.TempPlayer[connectionID].Buffer.Length() >= 4)
+        while (pLength > 0 & pLength <= Types.TempPlayer[connectionID].Buffer.Length() - 8)
+        {
+            if (pLength <= Types.TempPlayer[connectionID].Buffer.Length() - 8)
+            {
+                Types.TempPlayer[connectionID].Buffer.ReadLong();
+                data = Types.TempPlayer[connectionID].Buffer.ReadBytes((int)pLength);
+                HandleDataPackets(connectionID, data);
+            }
+            pLength = 0;
+
+            if (Types.TempPlayer[connectionID].Buffer.Length() >= 4)
             {
                 pLength = Types.TempPlayer[connectionID].Buffer.ReadLong(false);
-                if(pLength <= 0)
+                if (pLength < 0)
                 {
                     Types.TempPlayer[connectionID].Buffer.Clear();
                     return;
                 }
             }
-
-            while(pLength > 0 & pLength <= Types.TempPlayer[connectionID].Buffer.Length() - 8)
-            {
-                if(pLength <= Types.TempPlayer[connectionID].Buffer.Length() - 8)
-                {
-                    Types.TempPlayer[connectionID].Buffer.ReadLong();
-                    data = Types.TempPlayer[connectionID].Buffer.ReadBytes((int)pLength);
-                    HandleDataPackets(connectionID, data);
-                }
-                pLength = 0;
-
-                if(Types.TempPlayer[connectionID].Buffer.Length() >= 4)
-                {
-                    pLength = Types.TempPlayer[connectionID].Buffer.ReadLong(false);
-                    if(pLength < 0)
-                    {
-                        Types.TempPlayer[connectionID].Buffer.Clear();
-                        return;
-                    }
-                }
-            }
-
-            if(pLength <= 1)
-            {
-                Types.TempPlayer[connectionID].Buffer.Clear();
-            }
         }
 
-        public static void HandleDataPackets(long connectionID, byte[] data)
+        if (pLength <= 1)
         {
-            long packetnum; ByteBuffer buffer; Packet_ packet;
-
-            buffer = new ByteBuffer();
-            buffer.WriteBytes(data);
-            packetnum = buffer.ReadLong();
-            buffer = null;
-
-            if (packetnum == 0) return;
-
-            if(packets.TryGetValue(packetnum, out packet))
-            {
-                packet.Invoke(connectionID, data);
-            }
-
+            Types.TempPlayer[connectionID].Buffer.Clear();
         }
+    }
 
-        private static void PACKET_WELCOME(long connectionID, byte[] data)
+    public static void HandleDataPackets(long connectionID, byte[] data)
+    {
+        long packetnum; ByteBuffer buffer; Packet_ packet;
+
+        buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        packetnum = buffer.ReadLong();
+        buffer = null;
+
+        if (packetnum == 0) return;
+
+        if (packets.TryGetValue(packetnum, out packet))
         {
-            Console.WriteLine("Received Message");
-        }
-
-        private static void PACKET_PLAYERMOVE(long connectionID, byte[] data)
-        {
-            ByteBuffer buffer = new ByteBuffer();
-            buffer.WriteBytes(data);
-
-            long packetnum = buffer.ReadLong();
-
-            float x = buffer.ReadFloat();
-            float y = buffer.ReadFloat();
-            float z = buffer.ReadFloat();
-
-            float rotX = buffer.ReadFloat();
-            float rotY = buffer.ReadFloat();
-            float rotZ = buffer.ReadFloat();
-
-            Console.WriteLine("Player " + connectionID + " has moved!");
-
-            ServerTCP.SendPlayerMove((int)connectionID, x, y, z, rotX, rotY, rotZ);
-
+            packet.Invoke(connectionID, data);
         }
 
     }
+
+    private static void PACKET_WELCOME(long connectionID, byte[] data)
+    {
+        Console.WriteLine("Received Message");
+    }
+
+    private static void PACKET_PLAYERMOVE(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+
+        float rotX = buffer.ReadFloat();
+        float rotY = buffer.ReadFloat();
+        float rotZ = buffer.ReadFloat();
+
+        ServerTCP.SendPlayerMove((int)connectionID, x, y, z, rotX, rotY, rotZ);
+
+    }
+
+    private static void PACKET_PLAYERDATA(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        string name = buffer.ReadString();
+        string uid = buffer.ReadString();
+        float health = buffer.ReadFloat();
+        float hunger = buffer.ReadFloat();
+        float thirst = buffer.ReadFloat();
+
+        //Handle UID Here
+
+        ServerTCP.Clients[connectionID].player = new Player(name, uid, health, hunger, thirst);
+        //ServerTCP.Players.Add(ServerTCP.Clients[connectionID].player);
+
+
+        General.WritePlayersInfo();
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_DAMAGE(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetNum = buffer.ReadLong();
+        int id = buffer.ReadInteger();
+        float dmg = buffer.ReadFloat();
+
+        ServerTCP.SendDamage(id, dmg);
+
+        Console.WriteLine("Player: " + connectionID + " dealt " + dmg + " to " + "Player: " + id);
+    }
+
 }
