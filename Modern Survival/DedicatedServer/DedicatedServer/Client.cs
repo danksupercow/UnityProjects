@@ -6,7 +6,7 @@ public class Client
     private const int maxBufferSize = 4096;
 
     public int connectionID;
-    public Player player;
+    public Player player = new Player();
     public string ip;
     public TcpClient socket;
     public NetworkStream myStream;
@@ -42,7 +42,6 @@ public class Client
             int readbytes = myStream.EndRead(ar);
             if (readbytes <= 0)
             {
-                Console.WriteLine("readBytes <= 0");
                 CloseSocket();
                 return;
             }
@@ -51,9 +50,8 @@ public class Client
             ServerHandleData.HandleData(connectionID, newBytes);
             myStream.BeginRead(readBuff, 0, socket.ReceiveBufferSize, OnReceiveData, null);
         }
-        catch(Exception e)
+        catch
         {
-            Console.WriteLine(e);
             CloseSocket();
             return;
         }
@@ -62,7 +60,7 @@ public class Client
     private void CloseSocket()
     {
         //player.JustConnected = true;
-        Console.WriteLine("Connection from " + ip + " has failed.");
+        Console.WriteLine("Client " + connectionID + " has dsiconnected.");
         if(socket != null)
         {
             socket.Close();
@@ -70,7 +68,9 @@ public class Client
         }
 
         //Tell All Other Players That This Player Has Disconnected From The Server
+        player.JustConnected = true;
         ServerTCP.SendPlayerLeft(connectionID);
         General.WritePlayersInfo();
+        player = null;
     }
 }

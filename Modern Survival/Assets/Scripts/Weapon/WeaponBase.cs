@@ -14,6 +14,7 @@ public abstract class WeaponBase : MonoBehaviour
     public LayerMask layerMask = -1;
     public bool isAutomatic = false;
     public bool isAiming = false;
+    public float aimSpeed = 5;
     public Vector3 aimPosition;
     public Vector3 hipPosition;
     protected Transform muzzle;
@@ -37,7 +38,7 @@ public abstract class WeaponBase : MonoBehaviour
         muzzleFlash = muzzle.GetComponentInChildren<ParticleSystem>();
         currentAmmo = maxAmmo;
 
-        Debug.Log("Weapon " + transform + ": Audio=" + audioSource + " Muzzle=" + muzzle + "Starting Ammo=" + currentAmmo);
+        Console.Log("Weapon " + transform + ": Audio=" + audioSource + " Muzzle=" + muzzle + "Starting Ammo=" + currentAmmo);
     }
 
     public void CallUpdate()
@@ -77,11 +78,11 @@ public abstract class WeaponBase : MonoBehaviour
     {
         if(isAiming)
         {
-            transform.localPosition = aimPosition;
+            transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * aimSpeed);
         }
         else
         {
-            transform.localPosition = hipPosition;
+            transform.localPosition = Vector3.Lerp(transform.localPosition, hipPosition, Time.deltaTime * aimSpeed);
         }
     }
 

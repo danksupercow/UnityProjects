@@ -1,14 +1,27 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DamageHandler : MonoBehaviour
 {
-    public Stats localStats;
+    private Stats localStats;
     public float damageMultiplier;
 
-    public void Damage(float amount, Transform sender)
+    private void Awake()
     {
-        //localStats.CmdDamage(amount * damageMultiplier);
+        localStats = GetComponentInParent<Stats>();
+    }
+
+    public void Damage(float amount)
+    {
+        try
+        {
+            localStats.Damage((amount * damageMultiplier));
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 }

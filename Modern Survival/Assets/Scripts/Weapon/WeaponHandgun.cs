@@ -8,22 +8,35 @@ public class WeaponHandgun : WeaponBase
     {
         RaycastHit hit;
         Quaternion fireRotation = Quaternion.LookRotation(transform.forward);
-
+        
         audioSource.PlayOneShot(primaryFireSound);
         muzzleFlash.Play(true);
 
         if(Physics.Raycast(muzzle.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
         {
-            int id = hit.transform.GetComponent<ViewController>().connectionID;
+            ViewController vc = hit.transform.GetComponent<ViewController>();
+            DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
 
-            DealNetworkedDamage(id, damage);
+            if (NetworkManager.instance != null && vc != null && dh != null)
+            {
+                int id = vc.connectionID;
+                DealNetworkedDamage(id, (damage * dh.damageMultiplier));
+            }
+            else if (dh != null)
+            {
+                dh.Damage(damage);
+            }
 
-            if(Game.instance != null)
+            /* ###    \/ Hit Impact Effects \/    ### */
+            if(NetworkManager.instance != null)
+            {
+                ClientTCP.SpawnRegisteredPrefab(Game.GetSlugFromTag(hit.transform.tag), hit.point, Quaternion.identity);
+            }
+            else
             {
                 Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
                 t.position = hit.point;
                 t.LookAt(transform);
-                t.SetParent(hit.transform);
             }
         }
     }

@@ -19,12 +19,13 @@ public class ClientHandleData : MonoBehaviour
         Debug.Log("[Client] Initializing network messages...");
         packets = new Dictionary<long, Packet_>();
         packets.Add((long)PacketType.PlayerJoined, PACKET_PlayerJoined);
-        packets.Add((long)PacketType.PlayerLeft, PACKET_PlayerLeft);
         packets.Add((long)PacketType.PlayerData, PACKET_PlayerData);
+        packets.Add((long)PacketType.PlayerLeft, PACKET_PlayerLeft);
         packets.Add((long)PacketType.PlayerMove, PACKET_PlayerMove);
         packets.Add((long)PacketType.ItemData, PACKET_ITEMDATA);
         packets.Add((long)PacketType.GameRules, PACKET_GameRules);
         packets.Add((long)PacketType.Damage, PACKET_Damage);
+        packets.Add((long)PacketType.NetSpawn, PACKET_NetSpawn);
         Debug.Log("[Client] Network messages successfully initialized.");
     }
 
@@ -105,26 +106,16 @@ public class ClientHandleData : MonoBehaviour
     //Done Ish
     private static void PACKET_PlayerJoined(byte[] data)
     {
-        ByteBuffer buffer;
-        long packetnum;
-        buffer = new ByteBuffer();
-        buffer.WriteBytes(data);
-        packetnum = buffer.ReadLong();
-        NetworkManager.connectionID = buffer.ReadInteger();
-        string s = buffer.ReadString();
-        Debug.Log(s);
-
-        buffer.Dispose();
-    }
-
-    private static void PACKET_PlayerLeft(byte[] data)
-    {
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteBytes(data);
         long packetnum = buffer.ReadLong();
-        int leftID = buffer.ReadInteger();
+        int connectionID = buffer.ReadInteger();
+        string message = buffer.ReadString();
 
-        Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+        NetworkManager.connectionID = connectionID;
+        Debug.Log(message);
+
+        buffer.Dispose();
 
     }
 
@@ -136,9 +127,27 @@ public class ClientHandleData : MonoBehaviour
         long packetnum = buffer.ReadLong();
         int connectionID = buffer.ReadInteger();
 
-        NetworkManager.instance.InstantiatePlayer(connectionID);
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
 
-        buffer.Dispose();
+        GameObject ply = NetworkManager.GetPlayerObjectFromID(connectionID);
+        if(ply == null)
+        {
+            ply = NetworkManager.instance.InstantiatePlayer(connectionID);
+            ply.transform.position = new Vector3(x, y, z);
+        }
+    }
+
+    private static void PACKET_PlayerLeft(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        int leftID = buffer.ReadInteger();
+
+        Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+
     }
 
     private static void PACKET_PlayerMove(byte[] data)
@@ -166,6 +175,19 @@ public class ClientHandleData : MonoBehaviour
         player.transform.eulerAngles = new Vector3(General.WrapAngle(rotX), General.WrapAngle(rotY), General.WrapAngle(rotZ));
 
         buffer.Dispose();
+    }
+
+    private static void PACKET_PlayerStats(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        int connectionID = buffer.ReadInteger();
+
+        float health = buffer.ReadFloat();
+        float hunger = buffer.ReadFloat();
+        float thirst = buffer.ReadFloat();
     }
 
     private static void PACKET_ITEMDATA(byte[] data)
@@ -208,6 +230,29 @@ public class ClientHandleData : MonoBehaviour
         NetworkManager.GetPlayerObjectFromID(id).GetComponent<Stats>().Damage(dmg);
 
         buffer.Dispose();
+    }
+
+    private static void PACKET_NetSpawn(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        int senderID = buffer.ReadInteger();
+
+        string slug = buffer.ReadString();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+
+        float rotX = buffer.ReadFloat();
+        float rotY = buffer.ReadFloat();
+        float rotZ = buffer.ReadFloat();
+
+        Transform t = NetworkManager.SpawnRegisteredPrefab(slug);
+        t.position = new Vector3(x, y, z);
+        t.eulerAngles = new Vector3(General.WrapAngle(rotX), General.WrapAngle(rotY), General.WrapAngle(rotZ));
     }
 
 }

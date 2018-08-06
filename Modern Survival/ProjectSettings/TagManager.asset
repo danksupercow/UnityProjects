@@ -9,6 +9,8 @@ TagManager:
   - Living
   - Graphic
   - Terrain
+  - Glass
+  - Metal
   layers:
   - Default
   - TransparentFX

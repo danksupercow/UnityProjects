@@ -11,6 +11,7 @@ public class ServerTCP
 
     //Server Client Info
     public static Client[] Clients = new Client[0];
+    public static Players SavedPlayers = new Players();
 
     //Server Item Info
     public static string[] itemFiles;
@@ -23,6 +24,7 @@ public class ServerTCP
         LoadJsonItems();
         Clients = new Client[Constants.GAMERULES.MAX_PLAYER_COUNT];
         General.LoadPlayersInfo();
+        Console.WriteLine(SavedPlayers.Count);
         Console.WriteLine("Server Started Successfully :D");
     }
     public static void CloseNetwork()
@@ -57,6 +59,24 @@ public class ServerTCP
         Console.WriteLine("Failed To Find Empty Slot For Player!");
     }
 
+    public static byte[] PlayerData(int connectionID)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.PlayerData);
+        buffer.WriteInteger(connectionID);
+
+        Player p = Clients[connectionID].player;
+        buffer.WriteFloat(p.PosX);
+        buffer.WriteFloat(p.PosY);
+        buffer.WriteFloat(p.PosZ);
+
+        buffer.WriteFloat(p.Health);
+        buffer.WriteFloat(p.Hunger);
+        buffer.WriteFloat(p.Thirst);
+
+        return buffer.ToArray();
+    }
+
     public static void SendDataTo(long connectionID, byte[] data)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -88,17 +108,6 @@ public class ServerTCP
         buffer.Dispose();
 
         SendGameRules(connectionID);
-    }
-
-    public static byte[] PlayerData(int connectionID)
-    {
-        ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteLong((long)PacketType.PlayerData);
-        buffer.WriteInteger(connectionID);
-
-        //Send Health, Hunger, Thirst, PSych, Inventory (eventually)
-
-        return buffer.ToArray();
     }
 
     public static void SendInWorld(int connectionID)
@@ -156,6 +165,20 @@ public class ServerTCP
         buffer.Dispose();
     }
 
+    public static void SendPlayerStats(int connectionID, float health, float hunger, float thirst)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.PlayerStats);
+        buffer.WriteInteger(connectionID);
+
+        buffer.WriteFloat(health);
+        buffer.WriteFloat(hunger);
+        buffer.WriteFloat(thirst);
+
+        SendDataToAll(buffer.ToArray());
+        buffer.Dispose();
+    }
+
     public static void SendDamage(int connectionID, float damage)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -178,15 +201,19 @@ public class ServerTCP
         buffer.Dispose();
     }
 
-    public static void SendPlayerData(int connectionID, Player ply)
+    public static void SendNetSpawnRequest(int connectionID, string slug, float x, float y, float z, float rotX, float rotY, float rotZ)
     {
         ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteLong((long)PacketType.PlayerData);
+        buffer.WriteLong((long)PacketType.NetSpawn);
         buffer.WriteInteger(connectionID);
-        buffer.WriteString(ply.Name);
-        buffer.WriteFloat(ply.Health);
-        buffer.WriteFloat(ply.Hunger);
-        buffer.WriteFloat(ply.Thirst);
+        buffer.WriteString(slug);
+        buffer.WriteFloat(x);
+        buffer.WriteFloat(y);
+        buffer.WriteFloat(z);
+
+        buffer.WriteFloat(rotX);
+        buffer.WriteFloat(rotY);
+        buffer.WriteFloat(rotZ);
 
         SendDataToAll(buffer.ToArray());
         buffer.Dispose();
@@ -214,6 +241,7 @@ public class ServerTCP
             Console.WriteLine(Constants.GAMERULES.ToString());
         }
     }
+    
 
     /*
     public static void SendJoinMap(long index)

@@ -39,9 +39,6 @@ public class PlayerController : MonoBehaviour {
     private void Start()
     {
         instance = this;
-        
-        ClientTCP.SendPlayerData();
-
         cam = GetComponentInChildren<Camera>();
         rb = GetComponent<Rigidbody>();
 

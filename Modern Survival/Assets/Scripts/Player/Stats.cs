@@ -75,6 +75,10 @@ public class Stats : MonoBehaviour {
         }
         if (audioSource != null)
             PlayRandomOgSound(hurtClips);
+
+        ClientTCP.SendPlayerStats();
+
+        Console.Log("You took " + value + " damage.");
     }
     public void SetHealth(float value)
     {
@@ -103,6 +107,13 @@ public class Stats : MonoBehaviour {
     private void Thirst()
     {
 
+    }
+
+    public void UpdateStats(float h, float hu, float t)
+    {
+        health = h;
+        currentHunger = hu;
+        currentThirst = t;
     }
 
     public void Die()

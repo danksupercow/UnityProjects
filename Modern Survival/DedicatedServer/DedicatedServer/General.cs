@@ -92,7 +92,7 @@ public class General
 
     public static void WritePlayersInfo()
     {
-        string json = JsonConvert.SerializeObject(ServerTCP.Players, Formatting.Indented);
+        string json = JsonConvert.SerializeObject(ServerTCP.SavedPlayers, Formatting.Indented);
         if (File.Exists(Constants.PLAYERSINFOPATH))
         {
             File.WriteAllText(Constants.PLAYERSINFOPATH, json);
@@ -105,7 +105,16 @@ public class General
     public static void LoadPlayersInfo()
     {
         string json = File.ReadAllText(Constants.PLAYERSINFOPATH);
-        ServerTCP.Players = JsonConvert.DeserializeObject(json) as List<Player>;
-        Console.WriteLine(json);
+        Players p = JsonConvert.DeserializeObject<Players>(json);
+        if (p != null)
+        {
+            ServerTCP.SavedPlayers = p;
+            Console.WriteLine("Loaded Players.json successfully");
+        }
+        else
+        {
+            ServerTCP.SavedPlayers = new Players();
+            Console.WriteLine("Created new Players Json");
+        }
     }
 }

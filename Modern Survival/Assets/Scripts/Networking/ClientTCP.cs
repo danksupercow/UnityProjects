@@ -63,6 +63,7 @@ public class ClientTCP
                 myStream.BeginRead(asyncBuff, 0, 8192, OnReceive, null);
                 connected = true;
                 connecting = false;
+                SendPlayerData();
                 Debug.Log("[Client] Successfully connected to server!");
 
             }
@@ -111,22 +112,17 @@ public class ClientTCP
     {
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerData);
-        buffer.WriteString("NAME");
+
         buffer.WriteString(NetworkManager.FetchServerDataUID(currentIP, currentPort));
-        buffer.WriteFloat(Stats.instance.health);
-        buffer.WriteFloat(Stats.instance.currentHunger);
-        buffer.WriteFloat(Stats.instance.currentThirst);
 
         SendData(buffer.ToArray());
-        buffer.Dispose();
-
     }
 
     public static void SendMovement(Vector3 pos, Quaternion rot)
     {
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerMove);
-
+        
         //position
         buffer.WriteFloat(pos.x);
         buffer.WriteFloat(pos.y);
@@ -142,6 +138,21 @@ public class ClientTCP
         buffer.Dispose();
     }
 
+    public static void SendPlayerStats()
+    {
+        Stats s = Stats.instance;
+
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.PlayerStats);
+
+        buffer.WriteFloat(s.health);
+        buffer.WriteFloat(s.currentHunger);
+        buffer.WriteFloat(s.currentThirst);
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
+
     public static void SendDamage(int connectionID, float damage)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -149,6 +160,29 @@ public class ClientTCP
         buffer.WriteInteger(connectionID);
         buffer.WriteFloat(damage);
 
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
+
+    public static void SpawnRegisteredPrefab(string slug, Vector3 pos, Quaternion rot)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.NetSpawn);
+
+        //Send Server The 'slug' of the registered prefab you want to spawn...
+        buffer.WriteString(slug);
+
+        //Send Server the position you want to spawn the registered prefab at...
+        buffer.WriteFloat(pos.x);
+        buffer.WriteFloat(pos.y);
+        buffer.WriteFloat(pos.z);
+
+        //Send Server The rotation of the object you want to spawn...
+        buffer.WriteFloat(General.UnwrapAngle(rot.x));
+        buffer.WriteFloat(General.UnwrapAngle(rot.y));
+        buffer.WriteFloat(General.UnwrapAngle(rot.z));
+
+        //Finally, Convert ByteBuffer to byte[] and Send to the server then dispose the buffer.
         SendData(buffer.ToArray());
         buffer.Dispose();
     }

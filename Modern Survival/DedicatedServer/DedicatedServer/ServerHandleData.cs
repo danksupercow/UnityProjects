@@ -13,10 +13,10 @@ public class ServerHandleData
     public static void Init()
     {
         packets = new Dictionary<long, Packet_>();
-        packets.Add((long)PacketType.PlayerJoined, PACKET_WELCOME);
         packets.Add((long)PacketType.PlayerMove, PACKET_PLAYERMOVE);
-        packets.Add((long)PacketType.PlayerData, PACKET_PLAYERDATA);
+        packets.Add((long)PacketType.PlayerStats, PACKET_PLAYERSTATS);
         packets.Add((long)PacketType.Damage, PACKET_DAMAGE);
+        packets.Add((long)PacketType.NetSpawn, PACKET_NETSPAWN);
     }
 
     public static void HandleData(long connectionID, byte[] data)
@@ -88,9 +88,19 @@ public class ServerHandleData
 
     }
 
-    private static void PACKET_WELCOME(long connectionID, byte[] data)
+    private static void PACKET_PLAYERDATA(long connectionID, byte[] data)
     {
-        Console.WriteLine("Received Message");
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        string uid = buffer.ReadString();
+
+        if(ServerTCP.SavedPlayers.GetPlayerFromUID(uid) == null)
+        {
+            ServerTCP.SavedPlayers.SavePlayer(new Player());
+            ServerTCP.Clients[connectionID].player = ServerTCP.SavedPlayers.GetPlayerFromUID(uid);
+        }
     }
 
     private static void PACKET_PLAYERMOVE(long connectionID, byte[] data)
@@ -108,30 +118,25 @@ public class ServerHandleData
         float rotY = buffer.ReadFloat();
         float rotZ = buffer.ReadFloat();
 
+        //Update Players Stored Position
+        ServerTCP.Clients[connectionID].player.UpdateTransform(x, y, z);
+
         ServerTCP.SendPlayerMove((int)connectionID, x, y, z, rotX, rotY, rotZ);
+        buffer.Dispose();
 
     }
 
-    private static void PACKET_PLAYERDATA(long connectionID, byte[] data)
+    private static void PACKET_PLAYERSTATS(long connectionID, byte[] data)
     {
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteBytes(data);
+
         long packetnum = buffer.ReadLong();
-        string name = buffer.ReadString();
-        string uid = buffer.ReadString();
         float health = buffer.ReadFloat();
         float hunger = buffer.ReadFloat();
         float thirst = buffer.ReadFloat();
 
-        //Handle UID Here
-
-        ServerTCP.Clients[connectionID].player = new Player(name, uid, health, hunger, thirst);
-        //ServerTCP.Players.Add(ServerTCP.Clients[connectionID].player);
-
-
-        General.WritePlayersInfo();
-
-        buffer.Dispose();
+        ServerTCP.Clients[connectionID].player.UpdateStats(health, hunger, thirst);
     }
 
     private static void PACKET_DAMAGE(long connectionID, byte[] data)
@@ -148,4 +153,23 @@ public class ServerHandleData
         Console.WriteLine("Player: " + connectionID + " dealt " + dmg + " to " + "Player: " + id);
     }
 
+    private static void PACKET_NETSPAWN(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+
+        long packetnum = buffer.ReadLong();
+        string slug = buffer.ReadString();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+
+        float rotX = buffer.ReadFloat();
+        float rotY = buffer.ReadFloat();
+        float rotZ = buffer.ReadFloat();
+
+        ServerTCP.SendNetSpawnRequest((int)connectionID, slug, x, y, z, rotX, rotY, rotZ);
+        buffer.Dispose();
+    }
 }

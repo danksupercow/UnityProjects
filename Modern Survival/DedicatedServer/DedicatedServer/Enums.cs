@@ -10,9 +10,11 @@ public enum PacketType
     PlayerLeft,
     PlayerData,
     PlayerMove,
+    PlayerStats,
     PlayerPing,
     SyncdObject,
     ItemData,
     GameRules,
-    Damage
+    Damage,
+    NetSpawn
 }

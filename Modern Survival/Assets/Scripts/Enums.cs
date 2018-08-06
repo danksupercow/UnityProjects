@@ -4,11 +4,13 @@
     PlayerLeft,
     PlayerData,
     PlayerMove,
+    PlayerStats,
     PlayerPing,
     SyncdObject,
     ItemData,
     GameRules,
-    Damage
+    Damage,
+    NetSpawn
 }
 
 public struct ItemType

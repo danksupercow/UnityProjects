@@ -14,33 +14,38 @@ public class WeaponAssaultRifle : WeaponBase
         Quaternion fireRotation = Quaternion.LookRotation(transform.forward);
         Quaternion ranRot = Random.rotation;
 
-        if(!isAiming)
+        /* ###    \/ Bullet Spread( Different When Aiming ) \/    ### */
+        if (!isAiming)
             fireRotation = Quaternion.RotateTowards(fireRotation, ranRot, Random.Range(0f, hipSpreadAngle));
         else
             fireRotation = Quaternion.RotateTowards(fireRotation, ranRot, Random.Range(0f, aimSpreadAngle));
 
+        /* ###    \/ Muzzle Flash Stuff \/    ### */
         audioSource.PlayOneShot(primaryFireSound);
         muzzleFlash.Play(true);
+
+
         if (Physics.Raycast(muzzle.position, fireRotation * Vector3.forward, out hit, maxRange, layerMask))
         {
+
+            /* ###    \/ Damage Stuff \/    ### */
+            ViewController vc = hit.transform.GetComponent<ViewController>();
             DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
-            if (dh != null)
+
+            if (NetworkManager.instance != null && vc != null && dh != null)
             {
-                dh.Damage(damage, transform);
+                int id = vc.connectionID;
+                DealNetworkedDamage(id, (damage * dh.damageMultiplier));
             }
-            else
+            else if(dh != null)
             {
-                Stats s = hit.transform.GetComponent<Stats>();
-                if (s != null)
-                {
-                    s.Damage(damage);
-                }
+                dh.Damage(damage);
             }
 
+            /* ###    \/ Hit Impact Effects \/    ### */
             Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
             t.position = hit.point;
             t.LookAt(transform);
-            t.SetParent(hit.transform);
         }
     }
 }

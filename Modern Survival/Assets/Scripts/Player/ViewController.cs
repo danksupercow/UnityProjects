@@ -21,10 +21,7 @@ public class ViewController : MonoBehaviour {
     private void Start()
     {
         localStats = GetComponent<Stats>();
-
-        if (connectionID != NetworkManager.connectionID)
-            return;
-
+        
         instance = this;
         cam = GetComponentInChildren<Camera>();
         if(hand.childCount > 0)
@@ -45,17 +42,24 @@ public class ViewController : MonoBehaviour {
 
     private void Update()
     {
-        if (connectionID != NetworkManager.connectionID)
-            return;
+        CheckInput();
 
         playerRay = cam.ScreenPointToRay(new Vector2(Screen.width / 2, Screen.height / 2));
-        if(currentWeapon == null && hand.childCount > 0)
+
+        if(currentWeapon != null && currentWeapon.gameObject.activeSelf == false)
+        {
+            currentWeapon = null;
+        }
+
+        if (currentWeapon == null && hand.childCount > 0)
         {
             currentWeapon = hand.GetComponentInChildren<WeaponBase>();
             if(currentWeapon != null)
             {
                 currentWeapon.CallStart();
             }
+
+            Debug.Log(currentWeapon);
         }
 
         if(currentExplosive == null && hand.childCount > 0)
@@ -74,5 +78,13 @@ public class ViewController : MonoBehaviour {
 
         if (currentExplosive != null && currentExplosive.gameObject.activeSelf && !PlayerController.instance.toggleEscMenu)
             currentExplosive.CallUpdate();
+    }
+
+    void CheckInput()
+    {
+        if(Input.GetButtonDown("Console"))
+        {
+            Console.Toggle();
+        }
     }
 }

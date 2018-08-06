@@ -9,10 +9,17 @@ public class NetworkManager : MonoBehaviour {
     private ClientTCP clientTCP = new ClientTCP();
     [SerializeField]private GameObject playerPrefab;
     [SerializeField] private Transform spawnPoint;
+
+    /* ### Lists... ### */
     private Dictionary<int, GameObject> playerList = new Dictionary<int, GameObject>();
     private static List<ServerData> playerServers = new List<ServerData>();
+    [SerializeField]
+    private RegisteredPrefab[] registeredPrefabs;
+
+    /* ### ID Shit... ### */
     public static int connectionID;
 
+    /* ### Properties... ### */
     public static TcpClient Socket { get { return instance.clientTCP.playerSocket; } }
     public static List<ServerData> PlayerServers { get { return playerServers; } }
 
@@ -26,19 +33,8 @@ public class NetworkManager : MonoBehaviour {
         {
             playerServers = General.ReadPlayerData();
         }
-    }
 
-    private void LateUpdate()
-    {
-        return;
-
-        
-
-        if(clientTCP.playerSocket.Connected == false)
-        {
-            Debug.LogError("Connection To Server Was Lost!");
-            clientTCP.playerSocket.Close();
-        }
+        Debug.Log(playerServers[0].UID);
     }
 
     private void OnApplicationQuit()
@@ -51,27 +47,45 @@ public class NetworkManager : MonoBehaviour {
         clientTCP.Connect();
 	}
 	
-    public void InstantiatePlayer(int index)
+    public GameObject InstantiatePlayer(int index)
     {
         GameObject temp = Instantiate(playerPrefab);
-        temp.name = "Player: " + index;
-        temp.transform.position = spawnPoint.position;
-        PlayerController ply = temp.GetComponent<PlayerController>();
-        ViewController vc = ply.GetComponent<ViewController>();
-        vc.connectionID = index;
-        Stats s = temp.GetComponent<Stats>();
-        s.Init();
 
-        if (index != connectionID)
+        try
         {
-            Destroy(ply.transform.Find("PlayerCamera").gameObject);
-            Destroy(ply);
+            temp.name = "Player: " + index;
+            temp.transform.position = spawnPoint.position;
+            PlayerController ply = temp.GetComponent<PlayerController>();
+            ViewController vc = ply.GetComponent<ViewController>();
+            vc.connectionID = index;
+            Stats s = temp.GetComponent<Stats>();
+            s.Init();
+
+            if (index != connectionID)
+            {
+                Destroy(ply.transform.Find("PlayerCamera").gameObject);
+                Destroy(ply);
+                Destroy(vc);
+            }
+            playerList.Add(index, temp);
+
+            Console.Log("Created Player: " + index + " successfully.");
         }
-        playerList.Add(index, temp);
+        catch (System.Exception e)
+        {
+            Console.LogError(e);
+        }
+        return temp;
     }
 
     public static GameObject GetPlayerObjectFromID(int id)
     {
+        if (instance.playerList.Count < (id + 1))
+            return null;
+
+        if (instance.playerList.Count == 0)
+            return null;
+
         return instance.playerList[id];
     }
 
@@ -112,4 +126,24 @@ public class NetworkManager : MonoBehaviour {
         return string.Empty;
     }
 
+    public static Transform SpawnRegisteredPrefab(string slug)
+    {
+        for (int i = 0; i < instance.registeredPrefabs.Length; i++)
+        {
+            if(instance.registeredPrefabs[i].slug == slug)
+            {
+                Transform t = Instantiate(instance.registeredPrefabs[i].prefab).transform;
+                return t;
+            }
+        }
+
+        Debug.LogError("Failed to find prefab with slug " + slug + ". Does it exist?");
+        return null;
+    }
+
+    public static void UpdatePlayerStatsFromID(int id, float health, float hunger, float thirst)
+    {
+        Stats s = GetPlayerObjectFromID(id).GetComponent<Stats>();
+        s.UpdateStats(health, hunger, thirst);
+    }
 }
