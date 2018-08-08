@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ClientTCP
 {
@@ -15,6 +16,9 @@ public class ClientTCP
     private static string currentIP;
     private static int currentPort = -1;
 
+    public static string CurrentIP { get { return currentIP; } }
+    public static int CurrentPort { get { return currentPort; } }
+
     public void Connect()
     {
         Connect("127.0.0.1", 5555);
@@ -28,7 +32,6 @@ public class ClientTCP
         playerSocket.NoDelay = false;
         asyncBuff = new byte[8192];
         playerSocket.BeginConnect(ip, port, new AsyncCallback(ConnectCallback), playerSocket);
-        NetworkManager.RegisterServer(ip, port);
 
         currentIP = ip;
         currentPort = port;
@@ -40,7 +43,10 @@ public class ClientTCP
     {
         currentIP = string.Empty;
         currentPort = -1;
-        playerSocket.Close();
+        if(playerSocket != null)
+        {
+            playerSocket.Close();
+        }
     }
 
     private void ConnectCallback(IAsyncResult ar)
@@ -54,6 +60,7 @@ public class ClientTCP
                 currentPort = -1;
                 connected = false;
                 connecting = false;
+                Console.Log("Failed to connect to server at " + currentIP + ":" + currentPort);
                 return;
             }
             else
@@ -61,20 +68,21 @@ public class ClientTCP
                 playerSocket.NoDelay = true;
                 myStream = playerSocket.GetStream();
                 myStream.BeginRead(asyncBuff, 0, 8192, OnReceive, null);
+                NetworkManager.RegisterServer(currentIP, currentPort);
                 connected = true;
                 connecting = false;
                 SendPlayerData();
-                Debug.Log("[Client] Successfully connected to server!");
+                Console.Log("[Client] Successfully connected server at " + currentIP + ":" + currentPort);
 
             }
         }
-        catch
+        catch(Exception e)
         {
             currentIP = string.Empty;
             currentPort = -1;
             connecting = false;
             connected = false;
-            Debug.LogError("Unable to connect to server.");
+            Console.LogError(e);
         }
     }
 
@@ -93,10 +101,13 @@ public class ClientTCP
             });
             myStream.BeginRead(asyncBuff, 0, 8192, OnReceive, null);
         }
-        catch(Exception e)
+        catch
         {
-            Debug.LogError(e);
-            throw;
+            Console.LogError("Connection to Server " + currentIP + ":" + currentPort + " Was Lost.");
+            currentIP = string.Empty;
+            currentPort = -1;
+            connected = false;
+            connecting = false;
         }
     }
 
@@ -113,7 +124,10 @@ public class ClientTCP
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerData);
 
-        buffer.WriteString(NetworkManager.FetchServerDataUID(currentIP, currentPort));
+        ServerData sd = NetworkManager.FetchServerData(currentIP, currentPort);
+
+        buffer.WriteString(sd.UID);
+        buffer.WriteString(sd.Name);
 
         SendData(buffer.ToArray());
     }

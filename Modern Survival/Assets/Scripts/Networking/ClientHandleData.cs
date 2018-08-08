@@ -16,7 +16,7 @@ public class ClientHandleData : MonoBehaviour
 
     public static void InitMessages()
     {
-        Debug.Log("[Client] Initializing network messages...");
+        Console.Log("[Client] Initializing network messages...");
         packets = new Dictionary<long, Packet_>();
         packets.Add((long)PacketType.PlayerJoined, PACKET_PlayerJoined);
         packets.Add((long)PacketType.PlayerData, PACKET_PlayerData);
@@ -26,7 +26,7 @@ public class ClientHandleData : MonoBehaviour
         packets.Add((long)PacketType.GameRules, PACKET_GameRules);
         packets.Add((long)PacketType.Damage, PACKET_Damage);
         packets.Add((long)PacketType.NetSpawn, PACKET_NetSpawn);
-        Debug.Log("[Client] Network messages successfully initialized.");
+        Console.Log("[Client] Network messages successfully initialized.");
     }
 
     public static void HandleData(byte[] data)
@@ -113,7 +113,7 @@ public class ClientHandleData : MonoBehaviour
         string message = buffer.ReadString();
 
         NetworkManager.connectionID = connectionID;
-        Debug.Log(message);
+        Console.Log(message);
 
         buffer.Dispose();
 

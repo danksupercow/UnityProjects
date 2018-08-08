@@ -15,3 +15,13 @@ D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\Dedic
 D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.pdb
 D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.dll
 D:\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.xml
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.exe
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.pdb
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe.config
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.exe
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\DedicatedServer.pdb
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.dll
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\bin\Debug\Newtonsoft.Json.xml
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csprojAssemblyReference.cache
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csproj.CoreCompileInputs.cache
+C:\Users\danks\Documents\GitHub\UnityProjects\Modern Survival\DedicatedServer\DedicatedServer\obj\Debug\DedicatedServer.csproj.CopyComplete

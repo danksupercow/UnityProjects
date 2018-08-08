@@ -8,6 +8,7 @@ public class NetworkManager : MonoBehaviour {
     public static NetworkManager instance;
     private ClientTCP clientTCP = new ClientTCP();
     [SerializeField]private GameObject playerPrefab;
+    [SerializeField] private Camera menuCamera;
     [SerializeField] private Transform spawnPoint;
 
     /* ### Lists... ### */
@@ -22,6 +23,7 @@ public class NetworkManager : MonoBehaviour {
     /* ### Properties... ### */
     public static TcpClient Socket { get { return instance.clientTCP.playerSocket; } }
     public static List<ServerData> PlayerServers { get { return playerServers; } }
+    public static ClientTCP Client { get { return instance.clientTCP; } }
 
     private void Awake()
     {
@@ -33,8 +35,7 @@ public class NetworkManager : MonoBehaviour {
         {
             playerServers = General.ReadPlayerData();
         }
-
-        Debug.Log(playerServers[0].UID);
+        
     }
 
     private void OnApplicationQuit()
@@ -44,7 +45,7 @@ public class NetworkManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        clientTCP.Connect();
+        //clientTCP.Connect();
 	}
 	
     public GameObject InstantiatePlayer(int index)
@@ -60,12 +61,15 @@ public class NetworkManager : MonoBehaviour {
             vc.connectionID = index;
             Stats s = temp.GetComponent<Stats>();
             s.Init();
-
             if (index != connectionID)
             {
                 Destroy(ply.transform.Find("PlayerCamera").gameObject);
                 Destroy(ply);
                 Destroy(vc);
+            }
+            else
+            {
+                menuCamera.enabled = false;
             }
             playerList.Add(index, temp);
 
@@ -94,7 +98,6 @@ public class NetworkManager : MonoBehaviour {
         if(playerServers.Count == 0)
         {
             playerServers.Add(new ServerData(ip, port));
-            Debug.Log("Added Server Tp Empty List");
             General.WriteToPlayerDat();
             return;
         }
@@ -107,9 +110,9 @@ public class NetworkManager : MonoBehaviour {
                 return;
             }
         }
+        ServerData sd = new ServerData(ip, port);
+        playerServers.Add(sd);
 
-        playerServers.Add(new ServerData(ip, port));
-        Debug.Log("");
         General.WriteToPlayerDat();
     }
 
@@ -124,6 +127,19 @@ public class NetworkManager : MonoBehaviour {
         }
 
         return string.Empty;
+    }
+
+    public static ServerData FetchServerData(string ip, int port)
+    {
+        for (int i = 0; i < playerServers.Count; i++)
+        {
+            if(playerServers[i].ServerIP == ip && playerServers[i].ServerPort == port)
+            {
+                return playerServers[i];
+            }
+        }
+
+        return null;
     }
 
     public static Transform SpawnRegisteredPrefab(string slug)

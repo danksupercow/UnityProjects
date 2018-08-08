@@ -13,6 +13,7 @@ public class ServerHandleData
     public static void Init()
     {
         packets = new Dictionary<long, Packet_>();
+        packets.Add((long)PacketType.PlayerData, PACKET_PLAYERDATA);
         packets.Add((long)PacketType.PlayerMove, PACKET_PLAYERMOVE);
         packets.Add((long)PacketType.PlayerStats, PACKET_PLAYERSTATS);
         packets.Add((long)PacketType.Damage, PACKET_DAMAGE);
@@ -95,11 +96,17 @@ public class ServerHandleData
 
         long packetnum = buffer.ReadLong();
         string uid = buffer.ReadString();
+        string name = buffer.ReadString();
 
         if(ServerTCP.SavedPlayers.GetPlayerFromUID(uid) == null)
         {
             ServerTCP.SavedPlayers.SavePlayer(new Player());
             ServerTCP.Clients[connectionID].player = ServerTCP.SavedPlayers.GetPlayerFromUID(uid);
+        }
+
+        if(ServerTCP.Clients[connectionID].player.Name != name)
+        {
+            ServerTCP.Clients[connectionID].player.UpdateName(name);
         }
     }
 

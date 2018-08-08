@@ -126,4 +126,10 @@ public class Player
 
         General.WritePlayersInfo();
     }
+
+    public void UpdateName(string name)
+    {
+        Console.WriteLine(_name + " changed their name to " + name);
+        _name = name;
+    }
 }
