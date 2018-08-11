@@ -24,8 +24,12 @@ public class WeaponShotgun : WeaponBase
 
             if (Physics.Raycast(transform.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
             {
+                /* ###    \/ Damage && Physics Stuff \/    ### */
                 ViewController vc = hit.transform.GetComponent<ViewController>();
                 DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
+                Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+
+                AddWeaponForceAtPoint(rb, hit.point);
 
                 if (NetworkManager.instance != null && vc != null && dh != null)
                 {
@@ -42,6 +46,7 @@ public class WeaponShotgun : WeaponBase
                 t.position = hit.point;
                 t.LookAt(transform);
             }
+            
         }
 
     }

@@ -82,24 +82,28 @@ public class General
     {
         if(File.Exists(Constants.GAMERULESPATH))
         {
-            return FromJson();
+            File.WriteAllText(Constants.GAMERULESPATH, new Properties().ToJson());
+            return null;
         }
 
         File.Create(Constants.GAMERULESPATH);
-        File.WriteAllText("D:/", new Properties().ToJson());
+        File.WriteAllText(Constants.GAMERULESPATH, new Properties().ToJson());
+        Console.WriteLine("A New Properties.json File was Created and All Previous Info Has Been Reset.");
         return FromJson();
     }
 
     public static void WritePlayersInfo()
     {
-        string json = JsonConvert.SerializeObject(ServerTCP.SavedPlayers, Formatting.Indented);
+        return;
+
         if (File.Exists(Constants.PLAYERSINFOPATH))
         {
-            File.WriteAllText(Constants.PLAYERSINFOPATH, json);
+            File.WriteAllText(Constants.PLAYERSINFOPATH, ServerTCP.SavedPlayers.ToJson());
             return;
         }
-        
-        File.WriteAllText(Constants.PLAYERSINFOPATH, json);
+
+        File.Create(Constants.PLAYERSINFOPATH);
+        File.WriteAllText(Constants.PLAYERSINFOPATH, ServerTCP.SavedPlayers.ToJson());
     }
 
     public static void LoadPlayersInfo()

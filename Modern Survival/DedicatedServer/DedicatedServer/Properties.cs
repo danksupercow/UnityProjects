@@ -14,10 +14,18 @@ public class Properties
     public float MAX_PLAYER_HEALTH = 500;
     [JsonProperty("playerstartinghealth")]
     public float PLAYER_STARTING_HEALTH = 250;
+    [JsonProperty("bloodimpactpoolamount")]
+    public int BLOOD_IMPACT_POOL_AMOUNT = 300;
+    [JsonProperty("rockimpactpoolamount")]
+    public int ROCK_IMPACT_POOL_AMOUNT = 300;
+    [JsonProperty("dirtimpactpoolamount")]
+    public int DIRT_IMPACT_POOL_AMOUNT = 300;
+    [JsonProperty("glassimpactpoolamount")]
+    public int GLASS_IMPACT_POOL_AMOUNT = 100;
 
     public string ToJson()
     {
-        return JsonConvert.SerializeObject(this);
+        return JsonConvert.SerializeObject(this, Formatting.Indented);
     }
 
     public override string ToString()

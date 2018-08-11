@@ -145,8 +145,25 @@ public class ClientHandleData : MonoBehaviour
         buffer.WriteBytes(data);
         long packetnum = buffer.ReadLong();
         int leftID = buffer.ReadInteger();
+        string reason = buffer.ReadString();
 
-        Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+        if(reason == string.Empty)
+        {
+            reason = "None.";
+        }
+
+        if(leftID == NetworkManager.connectionID)
+        {
+            NetworkManager.SetMenuCameraActive(true);
+            Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+            Console.Log("You have been disconnected from the server. Reason: " + reason);
+        }
+        else
+        {
+            //Possibly implement sleepers later...
+            Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+            Console.Log("Client " + leftID + " has been disconnected from the server. Reason: " + reason);
+        }
 
     }
 
@@ -250,9 +267,19 @@ public class ClientHandleData : MonoBehaviour
         float rotY = buffer.ReadFloat();
         float rotZ = buffer.ReadFloat();
 
-        Transform t = NetworkManager.SpawnRegisteredPrefab(slug);
-        t.position = new Vector3(x, y, z);
-        t.eulerAngles = new Vector3(General.WrapAngle(rotX), General.WrapAngle(rotY), General.WrapAngle(rotZ));
+        Vector3 pos = new Vector3(x, y, z);
+        Quaternion rot = Quaternion.Euler(rotX, rotY, rotZ);
+
+        if(ObjectPooler.instance.poolDictionary[slug] != null)
+        {
+            ObjectPooler.instance.SpawnFromPool(slug, pos, rot);
+        }
+        else
+        {
+            Transform t = NetworkManager.SpawnRegisteredPrefab(slug);
+            t.position = pos;
+            t.rotation = rot;
+        }
     }
 
 }

@@ -15,6 +15,7 @@ public abstract class WeaponBase : MonoBehaviour
     public bool isAutomatic = false;
     public bool isAiming = false;
     public float aimSpeed = 5;
+    public float hitForce = 100;
     public Vector3 aimPosition;
     public Vector3 hipPosition;
     protected Transform muzzle;
@@ -25,6 +26,9 @@ public abstract class WeaponBase : MonoBehaviour
     public AudioClip primaryFireSound;
     public AudioClip reloadSound;
     protected AudioSource audioSource;
+    
+    public WeaponHoldType weaponHoldType;
+    public Animator armsAnimator;
 
     private bool readyToFire = true;
     private int currentAmmo;
@@ -79,6 +83,7 @@ public abstract class WeaponBase : MonoBehaviour
         if(isAiming)
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * aimSpeed);
+
         }
         else
         {
@@ -94,5 +99,21 @@ public abstract class WeaponBase : MonoBehaviour
     protected void DealNetworkedDamage(int connectionID, float damage)
     {
         ClientTCP.SendDamage(connectionID, damage);
+    }
+
+    protected virtual void AddWeaponForceAtPoint(Rigidbody rb, Vector3 point)
+    {
+        if(rb == null)
+        {
+            return;
+        }
+
+        Vector3 dir = point - transform.position;
+        rb.AddForceAtPosition(dir.normalized * hitForce, point, ForceMode.Impulse);
+    }
+
+    protected virtual void SpawnImpactEffect(string tag, Vector3 pos)
+    {
+        ObjectPooler.instance.SpawnFromPool(Game.GetSlugFromTag(tag), pos, Quaternion.identity);
     }
 }

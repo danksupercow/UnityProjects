@@ -21,17 +21,30 @@ public class Console : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (consoleText == null) return;
+
         consoleText.text = consoleString;
     }
 
     public static void Log(object input)
     {
+        if (instance == null) return;
+
         instance.consoleString += (" - " + input.ToString() + "\n");
     }
 
     public static void LogError(object input)
     {
-        instance.consoleString += (" - [ ERROR ] " + input.ToString() + "\n");
+        if (instance == null) return;
+
+        instance.consoleString += (" - <color=#800000ff>[ ERROR ] " + input.ToString() + "</color>\n");
+    }
+
+    public static void LogWarning(object input)
+    {
+        if (instance == null) return;
+
+        instance.consoleString += (" - <color=#ffff00ff>[ WARNING ] " + input.ToString() + "</color>\n");
     }
 
     public static void Toggle()
@@ -47,11 +60,18 @@ public class Console : MonoBehaviour
         if(Input.GetButtonDown("Submit"))
         {
             RunCommand(inputText.text);
+            inputText.text = string.Empty;
         }
     }
 
     private void RunCommand(string input)
     {
+        if(input == string.Empty)
+        {
+            LogError("Failed To Execute Command, Input was Empty.");
+            return;
+        }
+
         if(input.ToLower().StartsWith("connect"))
         {
             string s = input.Replace(' ', ':');
@@ -74,6 +94,10 @@ public class Console : MonoBehaviour
             string[] vars = s.Split(':');
 
             NetworkManager.FetchServerData(ClientTCP.CurrentIP, ClientTCP.CurrentPort).Name = vars[1];
+        }
+        if(input.ToLower() == "kill")
+        {
+            Stats.instance.Die();
         }
     }
 }

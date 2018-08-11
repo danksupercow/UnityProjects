@@ -24,6 +24,7 @@ public class NetworkManager : MonoBehaviour {
     public static TcpClient Socket { get { return instance.clientTCP.playerSocket; } }
     public static List<ServerData> PlayerServers { get { return playerServers; } }
     public static ClientTCP Client { get { return instance.clientTCP; } }
+    public static Vector3 LocalPlayerPosition { get { return GetPlayerObjectFromID(connectionID).transform.position; } }
 
     private void Awake()
     {
@@ -161,5 +162,18 @@ public class NetworkManager : MonoBehaviour {
     {
         Stats s = GetPlayerObjectFromID(id).GetComponent<Stats>();
         s.UpdateStats(health, hunger, thirst);
+    }
+
+    public static void SetMenuCameraActive(bool value)
+    {
+        instance.menuCamera.enabled = value;
+    }
+
+    public static void DestroyAllPlayers()
+    {
+        for (int i = 0; i < instance.playerList.Count; i++)
+        {
+            Destroy(instance.playerList[i]);
+        }
     }
 }

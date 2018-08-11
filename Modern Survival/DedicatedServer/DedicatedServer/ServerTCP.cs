@@ -132,9 +132,21 @@ public class ServerTCP
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerLeft);
         buffer.WriteInteger(connectionID);
+        buffer.WriteString(string.Empty);
 
         SendDataToAll(buffer.ToArray());
 
+        buffer.Dispose();
+    }
+
+    public static void SendPlayerLeft(int connectionID, string reason)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.PlayerLeft);
+        buffer.WriteInteger(connectionID);
+        buffer.WriteString(reason);
+
+        SendDataToAll(buffer.ToArray());
         buffer.Dispose();
     }
 
@@ -239,6 +251,11 @@ public class ServerTCP
         if (Constants.GAMERULES != null)
         {
             Console.WriteLine(Constants.GAMERULES.ToString());
+        }
+        else
+        {
+            Console.WriteLine("Constants.GAMERULES returned null, Creating new Properties() now...");
+            Constants.GAMERULES = new Properties();
         }
     }
     

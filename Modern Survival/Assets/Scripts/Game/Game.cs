@@ -7,6 +7,7 @@ public class Game : MonoBehaviour
 
     public float maxPlayerHealth;
     public float startPlayerHealth;
+    public int maxLoadDistance = 100;
 
     [Header("Impact Particle Effects")]
     public GameObject fleshImpact;
@@ -14,6 +15,10 @@ public class Game : MonoBehaviour
     public GameObject rockImpact;
     public GameObject metalImpact;
     public GameObject glassImpact;
+
+    public static float MaxPlayerHealth { get { return instance.maxPlayerHealth; } }
+    public static float StartingPlayerHealth { get { return instance.startPlayerHealth; } }
+    public static int MaxLoadDistance { get { return instance.maxLoadDistance; } }
 
     private void Awake()
     {

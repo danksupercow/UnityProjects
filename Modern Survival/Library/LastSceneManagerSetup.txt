@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/NetScene.unity
+- path: Assets/TestGround.unity
   isLoaded: 1
   isActive: 1

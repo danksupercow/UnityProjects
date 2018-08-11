@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4747276485419260}
   - component: {fileID: 198724311872945992}
-  - component: {fileID: 114593621682183082}
   - component: {fileID: 199139046391584672}
   - component: {fileID: 82535847236316690}
   m_Layer: 0
@@ -174,18 +173,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &114593621682183082
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1318640514314600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 243842063bc81db4c95d57db0fd19bea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timeDelay: 1
 --- !u!198 &198724311872945992
 ParticleSystem:
   m_ObjectHideFlags: 1

@@ -108,6 +108,7 @@ public class ClientTCP
             currentPort = -1;
             connected = false;
             connecting = false;
+            NetworkManager.DestroyAllPlayers();
         }
     }
 

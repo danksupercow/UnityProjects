@@ -8,9 +8,10 @@ public class ViewController : MonoBehaviour {
     public static ViewController instance;
 
     public Transform hand;
-    private Camera cam;
+    public Camera cam;
     public static Ray playerRay;
     private WeaponBase currentWeapon;
+    private ProjectileWeaponBase projWeapon;
     private ExplosiveBase currentExplosive;
     public int connectionID;
 
@@ -23,7 +24,6 @@ public class ViewController : MonoBehaviour {
         localStats = GetComponent<Stats>();
         
         instance = this;
-        cam = GetComponentInChildren<Camera>();
         if(hand.childCount > 0)
         {
             currentWeapon = hand.GetComponentInChildren<WeaponBase>();
@@ -38,11 +38,16 @@ public class ViewController : MonoBehaviour {
         {
             currentWeapon.owner = this;
         }
+
+        Console.Toggle();
     }
 
     private void Update()
     {
         CheckInput();
+
+        if (Stats.instance.isDead)
+            return;
 
         playerRay = cam.ScreenPointToRay(new Vector2(Screen.width / 2, Screen.height / 2));
 
@@ -58,8 +63,20 @@ public class ViewController : MonoBehaviour {
             {
                 currentWeapon.CallStart();
             }
+        }
 
-            Debug.Log(currentWeapon);
+        if(projWeapon == null && hand.childCount > 0)
+        {
+            projWeapon = GetComponentInChildren<ProjectileWeaponBase>();
+            if(projWeapon != null)
+            {
+                projWeapon.CallStart();
+            }
+        }
+
+        if(projWeapon != null)
+        {
+            projWeapon.CallUpdate();
         }
 
         if(currentExplosive == null && hand.childCount > 0)

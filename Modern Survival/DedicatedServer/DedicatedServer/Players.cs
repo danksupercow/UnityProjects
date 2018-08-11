@@ -54,6 +54,10 @@ public class Players
         return p;
     }
 
+    public string ToJson()
+    {
+        return JsonConvert.SerializeObject(this, Formatting.Indented);
+    }
 }
 
 [JsonObject(MemberSerialization.OptIn)]
@@ -95,6 +99,12 @@ public class Player
     public Player()
     {
         _health = Constants.GAMERULES.PLAYER_STARTING_HEALTH;
+    }
+
+    public Player(string uid)
+    {
+        _health = Constants.GAMERULES.PLAYER_STARTING_HEALTH;
+        _uid = uid;
     }
 
     public Player(string name, float x, float y, float z, string uid, float health, float hunger, float thirst)

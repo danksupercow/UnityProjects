@@ -100,13 +100,8 @@ public class ServerHandleData
 
         if(ServerTCP.SavedPlayers.GetPlayerFromUID(uid) == null)
         {
-            ServerTCP.SavedPlayers.SavePlayer(new Player());
+            ServerTCP.SavedPlayers.SavePlayer(new Player(uid));
             ServerTCP.Clients[connectionID].player = ServerTCP.SavedPlayers.GetPlayerFromUID(uid);
-        }
-
-        if(ServerTCP.Clients[connectionID].player.Name != name)
-        {
-            ServerTCP.Clients[connectionID].player.UpdateName(name);
         }
     }
 

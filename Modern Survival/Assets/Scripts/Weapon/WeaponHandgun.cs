@@ -14,8 +14,12 @@ public class WeaponHandgun : WeaponBase
 
         if(Physics.Raycast(muzzle.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
         {
+            /* ###    \/ Damage && Physics Stuff \/    ### */
             ViewController vc = hit.transform.GetComponent<ViewController>();
             DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
+            Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+
+            AddWeaponForceAtPoint(rb, hit.point);
 
             if (NetworkManager.instance != null && vc != null && dh != null)
             {
@@ -34,9 +38,7 @@ public class WeaponHandgun : WeaponBase
             }
             else
             {
-                Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
-                t.position = hit.point;
-                t.LookAt(transform);
+                SpawnImpactEffect(hit.transform.tag, hit.point);
             }
         }
     }

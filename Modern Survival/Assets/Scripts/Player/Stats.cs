@@ -29,6 +29,10 @@ public class Stats : MonoBehaviour {
     public float currentThirst, maxThirst, currentHunger, maxHunger;
     public float maxHealth;
     public float health;
+
+    public GameObject playerModel;
+    public GameObject playerRagdoll;
+    public GameObject playerCamera;
     
     private void Update()
     {
@@ -56,6 +60,17 @@ public class Stats : MonoBehaviour {
         instance = this;
         isPlayer = GetComponent<PlayerController>();
         audioSource = GetComponent<AudioSource>();
+    }
+
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+
+        isPlayer = GetComponent<PlayerController>();
+        viewController = GetComponent<ViewController>();
     }
 
     public void Damage(float value)
@@ -121,8 +136,6 @@ public class Stats : MonoBehaviour {
         isDead = true;
         if (audioSource != null)
             PlayRandomOgSound(deadClips);
-
-        transform.Rotate(new Vector3(0, 0, 90));
         if (!isPlayer)
         {
             Debug.LogError("Code Not Implemented Yet!");
@@ -131,7 +144,12 @@ public class Stats : MonoBehaviour {
         {
             GetComponent<PlayerController>().enabled = false;
         }
-        GetComponent<Stats>().enabled = false;
+
+        playerModel.SetActive(false);
+        playerRagdoll.SetActive(true);
+        playerCamera.SetActive(false);
+        GetComponent<Rigidbody>().isKinematic = true;
+        this.enabled = false;
     }
     public void Reset()
     {

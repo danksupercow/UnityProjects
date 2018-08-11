@@ -50,8 +50,9 @@ public class Client
             ServerHandleData.HandleData(connectionID, newBytes);
             myStream.BeginRead(readBuff, 0, socket.ReceiveBufferSize, OnReceiveData, null);
         }
-        catch
+        catch(Exception e)
         {
+            Console.WriteLine(e);
             CloseSocket();
             return;
         }
@@ -59,18 +60,37 @@ public class Client
 
     private void CloseSocket()
     {
-        //player.JustConnected = true;
-        Console.WriteLine("Client " + connectionID + " has dsiconnected.");
+        ServerTCP.SendPlayerLeft(connectionID);
+        if (socket != null)
+        {
+            socket.Close();
+            socket = null;
+        }
+        
+        player.JustConnected = true;
+        General.WritePlayersInfo();
+        player = new Player();
+        Console.WriteLine("Client " + connectionID + " has disconnected.");
+    }
+
+    public void Kick(string reason)
+    {
+        if(socket == null)
+        {
+            Console.WriteLine("There is no Client " + connectionID + " Connected.");
+            return;
+        }
+
+        ServerTCP.SendPlayerLeft(connectionID);
         if(socket != null)
         {
             socket.Close();
             socket = null;
         }
 
-        //Tell All Other Players That This Player Has Disconnected From The Server
         player.JustConnected = true;
-        ServerTCP.SendPlayerLeft(connectionID);
         General.WritePlayersInfo();
-        player = null;
+        player = new Player();
+        Console.WriteLine("Client " + connectionID + " was kicked for '" + reason + ".'");
     }
 }

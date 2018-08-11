@@ -27,10 +27,14 @@ public class WeaponAssaultRifle : WeaponBase
 
         if (Physics.Raycast(muzzle.position, fireRotation * Vector3.forward, out hit, maxRange, layerMask))
         {
+            Console.Log("You Hit " + hit.transform.name + " from " + hit.distance + "m.");
 
-            /* ###    \/ Damage Stuff \/    ### */
+            /* ###    \/ Damage && Physics Stuff \/    ### */
             ViewController vc = hit.transform.GetComponent<ViewController>();
             DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
+            Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+
+            AddWeaponForceAtPoint(rb, hit.point);
 
             if (NetworkManager.instance != null && vc != null && dh != null)
             {
