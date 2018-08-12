@@ -61,16 +61,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Enums.cs" />
     <Compile Include="Assets\Scripts\Game\Console.cs" />
     <Compile Include="Assets\Scripts\Game\DelayDestruction.cs" />
+    <Compile Include="Assets\Scripts\Game\Enums.cs" />
     <Compile Include="Assets\Scripts\Game\Game.cs" />
     <Compile Include="Assets\Scripts\Game\General.cs" />
+    <Compile Include="Assets\Scripts\Game\ObjectPooler.cs" />
+    <Compile Include="Assets\Scripts\Game\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Game\Prop.cs" />
     <Compile Include="Assets\Scripts\Game\Range.cs" />
-    <Compile Include="Assets\Scripts\Moped.cs" />
+    <Compile Include="Assets\Scripts\Interfaces\IPooledObject.cs" />
     <Compile Include="Assets\Scripts\Networking\ClientHandleData.cs" />
     <Compile Include="Assets\Scripts\Networking\ClientTCP.cs" />
+    <Compile Include="Assets\Scripts\Networking\NetworkID.cs" />
     <Compile Include="Assets\Scripts\Networking\NetworkManager.cs" />
     <Compile Include="Assets\Scripts\Networking\RegisteredPrefab.cs" />
     <Compile Include="Assets\Scripts\Networking\ServerData.cs" />
@@ -85,10 +88,14 @@
     <Compile Include="Assets\Scripts\Player\Stats.cs" />
     <Compile Include="Assets\Scripts\Player\UIController.cs" />
     <Compile Include="Assets\Scripts\Player\ViewController.cs" />
+    <Compile Include="Assets\Scripts\ProceduralGeneration\MapGenerator.cs" />
+    <Compile Include="Assets\Scripts\ProceduralGeneration\Noise.cs" />
+    <Compile Include="Assets\Scripts\TestingNonsense\Moped.cs" />
     <Compile Include="Assets\Scripts\UnityThread.cs" />
     <Compile Include="Assets\Scripts\Weapon\ExplosiveBase.cs" />
     <Compile Include="Assets\Scripts\Weapon\ExplosiveGrenade.cs" />
     <Compile Include="Assets\Scripts\Weapon\ExplosivePlastic.cs" />
+    <Compile Include="Assets\Scripts\Weapon\Projectile.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponAssaultRifle.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponBase.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponHandgun.cs" />

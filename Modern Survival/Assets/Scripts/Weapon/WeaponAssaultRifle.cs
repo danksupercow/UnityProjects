@@ -5,9 +5,11 @@ using UnityEngine;
 public class WeaponAssaultRifle : WeaponBase
 {
     [Header("Assault Rifle Variables: ")]
+    [Range(10, 50)]
     public int hipSpreadAngle;
+    [Range(2, 35)]
     public int aimSpreadAngle;
-
+    
     protected override void PrimaryFire()
     {
         RaycastHit hit;
@@ -25,10 +27,8 @@ public class WeaponAssaultRifle : WeaponBase
         muzzleFlash.Play(true);
 
 
-        if (Physics.Raycast(muzzle.position, fireRotation * Vector3.forward, out hit, maxRange, layerMask))
+        if (Physics.Raycast(muzzle.position, fireRotation * Vector3.forward, out hit, maxRaycastDist))
         {
-            Console.Log("You Hit " + hit.transform.name + " from " + hit.distance + "m.");
-
             /* ###    \/ Damage && Physics Stuff \/    ### */
             ViewController vc = hit.transform.GetComponent<ViewController>();
             DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
@@ -50,6 +50,13 @@ public class WeaponAssaultRifle : WeaponBase
             Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
             t.position = hit.point;
             t.LookAt(transform);
+
+            return;
         }
+
+        Projectile p = Instantiate(projectile.prefab, muzzle.position, muzzle.rotation).GetComponent<Projectile>();
+        p.damage = damage;
+        p.hitCallback = HitCallback;
+        p.rigidbody.AddForce(transform.forward * fireForce, ForceMode.Impulse);
     }
 }

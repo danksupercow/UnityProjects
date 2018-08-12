@@ -11,7 +11,6 @@ public class ViewController : MonoBehaviour {
     public Camera cam;
     public static Ray playerRay;
     private WeaponBase currentWeapon;
-    private ProjectileWeaponBase projWeapon;
     private ExplosiveBase currentExplosive;
     public int connectionID;
 
@@ -32,11 +31,6 @@ public class ViewController : MonoBehaviour {
             currentExplosive = hand.GetComponentInChildren<ExplosiveBase>();
             if (currentExplosive != null)
                 currentExplosive.CallStart();
-        }
-
-        if(currentWeapon!=null)
-        {
-            currentWeapon.owner = this;
         }
 
         Console.Toggle();
@@ -63,20 +57,6 @@ public class ViewController : MonoBehaviour {
             {
                 currentWeapon.CallStart();
             }
-        }
-
-        if(projWeapon == null && hand.childCount > 0)
-        {
-            projWeapon = GetComponentInChildren<ProjectileWeaponBase>();
-            if(projWeapon != null)
-            {
-                projWeapon.CallStart();
-            }
-        }
-
-        if(projWeapon != null)
-        {
-            projWeapon.CallUpdate();
         }
 
         if(currentExplosive == null && hand.childCount > 0)

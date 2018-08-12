@@ -7,6 +7,7 @@ public class WeaponShotgun : WeaponBase
 {
     [Header("Shotgun Variables: ")]
     public int pelletCount = 8;
+    [Range(10, 45)]
     public float spreadAngle = 10;
 
     protected override void PrimaryFire()
@@ -22,32 +23,11 @@ public class WeaponShotgun : WeaponBase
 
             fireRotation = Quaternion.RotateTowards(fireRotation, ranRot, Random.Range(0f, spreadAngle));
 
-            if (Physics.Raycast(transform.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
-            {
-                /* ###    \/ Damage && Physics Stuff \/    ### */
-                ViewController vc = hit.transform.GetComponent<ViewController>();
-                DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
-                Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+            Projectile p = Instantiate(projectile.prefab, muzzle.position, muzzle.rotation).GetComponent<Projectile>();
+            p.damage = damage;
+            p.hitCallback = HitCallback;
+            p.rigidbody.AddForce(fireRotation.eulerAngles * fireForce, ForceMode.Impulse);
 
-                AddWeaponForceAtPoint(rb, hit.point);
-
-                if (NetworkManager.instance != null && vc != null && dh != null)
-                {
-                    int id = vc.connectionID;
-                    DealNetworkedDamage(id, (damage * dh.damageMultiplier));
-                }
-                else if (dh != null)
-                {
-                    dh.Damage(damage);
-                }
-
-                /* ###    \/ Hit Impact Effects \/    ### */
-                Transform t = Instantiate(Game.instance.GetImpactFromTag(hit.transform.tag)).transform;
-                t.position = hit.point;
-                t.LookAt(transform);
-            }
-            
         }
-
     }
 }

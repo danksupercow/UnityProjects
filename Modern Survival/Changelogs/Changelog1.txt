@@ -2,3 +2,6 @@
 -Fixed Server Unable to Create and Write to new 'Player' objects
 -Implemented Object Pooling( Currently Only for Impac Effects )
 -Implemented Server Kicking
+-Implemented Suicide Console Command( 'kill' / 'suicide' )
+-Added Player Ragdoll on Death
+-Modeled & Textured New 'Sawed Off' Gun

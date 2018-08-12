@@ -4,36 +4,43 @@ using UnityEngine;
 
 public abstract class WeaponBase : MonoBehaviour
 {
-    [Header("Base Weapon Variables: ")]
-    public float damage = 1.0f;
-    public float maxRange;
+    [Header("Base Projectile Weapon Variables: ")]
+    public Projectile projectile;
+    public float fireForce = 100f;
+    public float maxRaycastDist = 20f;
+    protected float damage;
     public int maxAmmo = 0; // 0 = infinite ammo
+
     public float fireDelay = 0.1f;
     public string primaryFire = "Fire1";
     public string secondaryFire = "Fire2";
+
     public LayerMask layerMask = -1;
     public bool isAutomatic = false;
     public bool isAiming = false;
     public float aimSpeed = 5;
     public float hitForce = 100;
+
     public Vector3 aimPosition;
     public Vector3 hipPosition;
     protected Transform muzzle;
     protected ParticleSystem muzzleFlash;
-    [HideInInspector]
-    public ViewController owner;
 
     public AudioClip primaryFireSound;
     public AudioClip reloadSound;
     protected AudioSource audioSource;
-    
-    public WeaponHoldType weaponHoldType;
-    public Animator armsAnimator;
 
     private bool readyToFire = true;
     private int currentAmmo;
 
     protected abstract void PrimaryFire();
+
+    protected virtual void HitCallback(Transform t, Vector3 pos)
+    {
+        SpawnImpactEffect(t.tag, pos);
+        Rigidbody rb = t.GetComponent<Rigidbody>();
+        AddWeaponForceAtPoint(rb, pos);
+    }
 
     public void CallStart()
     {
@@ -41,8 +48,6 @@ public abstract class WeaponBase : MonoBehaviour
         muzzle = transform.Find("muzzle");
         muzzleFlash = muzzle.GetComponentInChildren<ParticleSystem>();
         currentAmmo = maxAmmo;
-
-        Console.Log("Weapon " + transform + ": Audio=" + audioSource + " Muzzle=" + muzzle + "Starting Ammo=" + currentAmmo);
     }
 
     public void CallUpdate()
@@ -80,7 +85,7 @@ public abstract class WeaponBase : MonoBehaviour
 
     protected virtual void AimDownSights()
     {
-        if(isAiming)
+        if (isAiming)
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * aimSpeed);
 
@@ -103,7 +108,7 @@ public abstract class WeaponBase : MonoBehaviour
 
     protected virtual void AddWeaponForceAtPoint(Rigidbody rb, Vector3 point)
     {
-        if(rb == null)
+        if (rb == null)
         {
             return;
         }

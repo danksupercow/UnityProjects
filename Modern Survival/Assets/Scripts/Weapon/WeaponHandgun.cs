@@ -8,18 +8,16 @@ public class WeaponHandgun : WeaponBase
     {
         RaycastHit hit;
         Quaternion fireRotation = Quaternion.LookRotation(transform.forward);
-        
+
         audioSource.PlayOneShot(primaryFireSound);
         muzzleFlash.Play(true);
 
-        if(Physics.Raycast(muzzle.position, fireRotation*Vector3.forward, out hit, maxRange, layerMask))
+        if (Physics.Raycast(muzzle.position, muzzle.forward, out hit, maxRaycastDist))
         {
             /* ###    \/ Damage && Physics Stuff \/    ### */
             ViewController vc = hit.transform.GetComponent<ViewController>();
             DamageHandler dh = hit.transform.GetComponent<DamageHandler>();
             Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
-
-            AddWeaponForceAtPoint(rb, hit.point);
 
             if (NetworkManager.instance != null && vc != null && dh != null)
             {
@@ -32,7 +30,7 @@ public class WeaponHandgun : WeaponBase
             }
 
             /* ###    \/ Hit Impact Effects \/    ### */
-            if(NetworkManager.instance != null)
+            if (NetworkManager.instance != null)
             {
                 ClientTCP.SpawnRegisteredPrefab(Game.GetSlugFromTag(hit.transform.tag), hit.point, Quaternion.identity);
             }
@@ -40,6 +38,13 @@ public class WeaponHandgun : WeaponBase
             {
                 SpawnImpactEffect(hit.transform.tag, hit.point);
             }
+
+            return;
         }
+
+        Projectile p = Instantiate(projectile.prefab, muzzle.position, muzzle.rotation).GetComponent<Projectile>();
+        p.damage = damage;
+        p.hitCallback = HitCallback;
+        p.rigidbody.AddForce(transform.forward * fireForce, ForceMode.Impulse);
     }
 }
