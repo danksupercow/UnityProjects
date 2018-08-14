@@ -16,7 +16,6 @@ public class ExplosiveGrenade : ExplosiveBase
     {
         base.CallStart();
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;
     }
 
     protected override void CheckInput()
@@ -51,7 +50,7 @@ public class ExplosiveGrenade : ExplosiveBase
                 Stats s = cols[i].GetComponent<Stats>();
                 if (s != null)
                 {
-                    s.Damage(Damage);
+                    //s.Damage(Damage);
                 }
             }
         }
@@ -69,14 +68,14 @@ public class ExplosiveGrenade : ExplosiveBase
 
         if (primaryPressed)
         {
+            //Debug.Log("Tossed");
             Transform t = Instantiate(grenadePrefab).transform;
             t.transform.position = transform.position;
             ExplosiveGrenade explosive = t.GetComponent<ExplosiveGrenade>();
             explosive.CallStart();
-            explosive.rb.isKinematic = false;
-            explosive.rb.AddForce(throwDir * throwForce, ForceMode.Impulse);
-            explosive.isExploding = true;
-            explosive.Invoke("Explode", explosionDelay);
+            explosive.rb.AddForce(throwDir.normalized * throwForce, ForceMode.Impulse);
+            //explosive.isExploding = true;
+            //explosive.Invoke("Explode", explosionDelay);
             return;
         }
 

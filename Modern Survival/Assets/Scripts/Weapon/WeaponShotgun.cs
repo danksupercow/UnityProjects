@@ -9,6 +9,7 @@ public class WeaponShotgun : WeaponBase
     public int pelletCount = 8;
     [Range(10, 45)]
     public float spreadAngle = 10;
+    public AudioClip pumpSound;
 
     protected override void PrimaryFire()
     {
@@ -23,11 +24,21 @@ public class WeaponShotgun : WeaponBase
 
             fireRotation = Quaternion.RotateTowards(fireRotation, ranRot, Random.Range(0f, spreadAngle));
 
-            Projectile p = Instantiate(projectile.prefab, muzzle.position, muzzle.rotation).GetComponent<Projectile>();
-            p.damage = damage;
-            p.hitCallback = HitCallback;
-            p.rigidbody.AddForce(fireRotation.eulerAngles * fireForce, ForceMode.Impulse);
+            if(Physics.Raycast(muzzle.position, fireRotation * Vector3.forward, out hit, maxRaycastDist))
+            {
+                SpawnImpactEffect(hit.transform.tag, hit.point);
+                continue;
+            }
+            else
+            {
+                Projectile p = Instantiate(projectile.prefab, muzzle.position, muzzle.rotation).GetComponent<Projectile>();
+                p.damage = damage;
+                p.hitCallback = HitCallback;
+                p.rigidbody.AddForce((fireRotation * Vector3.forward) * fireForce, ForceMode.Impulse);
+            }
 
         }
+
+        audioSource.PlayOneShot(pumpSound);
     }
 }

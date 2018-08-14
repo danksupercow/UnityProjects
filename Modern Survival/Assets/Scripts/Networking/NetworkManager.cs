@@ -61,7 +61,7 @@ public class NetworkManager : MonoBehaviour {
             ViewController vc = ply.GetComponent<ViewController>();
             vc.connectionID = index;
             Stats s = temp.GetComponent<Stats>();
-            s.Init();
+            //s.Init();
             if (index != connectionID)
             {
                 Destroy(ply.transform.Find("PlayerCamera").gameObject);
@@ -161,7 +161,7 @@ public class NetworkManager : MonoBehaviour {
     public static void UpdatePlayerStatsFromID(int id, float health, float hunger, float thirst)
     {
         Stats s = GetPlayerObjectFromID(id).GetComponent<Stats>();
-        s.UpdateStats(health, hunger, thirst);
+        //s.UpdateStats(health, hunger, thirst);
     }
 
     public static void SetMenuCameraActive(bool value)

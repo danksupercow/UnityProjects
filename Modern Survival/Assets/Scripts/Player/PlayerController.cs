@@ -12,9 +12,11 @@ public class PlayerController : MonoBehaviour {
 
     public float mouseSensitivityX = 250f;
     public float mouseSensitivityY = 250f;
+    public float crouchSpeed = 2f;
     public float walkSpeed = 8f;
     public float runSpeed = 12f;
     public float jumpForce = 220f;
+    public Animator animator;
     private float moveSpeed;
     private float groundDistance;
 
@@ -30,7 +32,12 @@ public class PlayerController : MonoBehaviour {
     Vector3 smoothMoveVelocity;
     Vector3 lastPosition;
 
-    bool grounded;
+    public bool grounded;
+    public bool moving;
+    public bool running;
+    public bool crouched;
+
+    public float animMove = 0f;
 
     //Private
     private Camera cam;
@@ -49,21 +56,47 @@ public class PlayerController : MonoBehaviour {
 
     private void Update()
     {
+        crouched = Input.GetButton("Crouch");
+
         if (Input.GetButtonDown("Cancel"))
         {
             toggleEscMenu = !toggleEscMenu;
         }
 
-        if (Input.GetButton("Run"))
+        if (Input.GetButton("Run") && moving && !crouched)
         {
-            moveSpeed = runSpeed;
+            running = true;
+            moveSpeed = Mathf.Lerp(moveSpeed, runSpeed, 0.5f);
+            animMove = Mathf.Lerp(animMove, 1.0f, 5f * Time.deltaTime);
+        }
+        else if(moving)
+        {
+            running = false;
+            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, 5f * Time.deltaTime);
+            animMove = Mathf.Lerp(animMove, 0.5f, 5f * Time.deltaTime);
         }
         else
         {
-            moveSpeed = walkSpeed;
+            running = false;
+            moveSpeed = Mathf.Lerp(moveSpeed, 0f, 5f * Time.deltaTime);
+            animMove = Mathf.Lerp(animMove, 0.0f, 5f * Time.deltaTime);
         }
 
-        if(groundDistance <= 1.3f)
+        if (crouched && moving && !running)
+        {
+            Debug.Log("Crouch Walking");
+            moveSpeed = Mathf.Lerp(moveSpeed, crouchSpeed, 5f * Time.deltaTime);
+            animMove = Mathf.Lerp(animMove, 0.5f, 5f * Time.deltaTime);
+        }
+        else if(!moving && !running)
+        {
+            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, 5f * Time.deltaTime);
+            animMove = Mathf.Lerp(animMove, 0.0f, 5f * Time.deltaTime);
+        }
+
+        animator.SetBool("isCrouched", crouched);
+
+        if (groundDistance <= 0.2f)
         {
             grounded = true;
         }
@@ -83,7 +116,7 @@ public class PlayerController : MonoBehaviour {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
-        
+
         if (Input.GetButtonDown("Jump"))
         {
             if (grounded)
@@ -96,8 +129,13 @@ public class PlayerController : MonoBehaviour {
         if (Physics.Raycast(ray, out hit))
         {
             groundDistance = hit.distance;
+            if(crouched && groundDistance <= 0.5f)
+            {
+                transform.position = hit.point;
+            }
         }
 
+        animator.SetFloat("speedPercent", animMove);
 
         Move();
 
@@ -121,7 +159,11 @@ public class PlayerController : MonoBehaviour {
         Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
         Vector3 targetMoveAmount = moveDir * moveSpeed;
         moveAmount = Vector3.SmoothDamp(moveAmount, targetMoveAmount, ref smoothMoveVelocity, 0.15f);
-
+        
+        if (targetMoveAmount != Vector3.zero)
+            moving = true;
+        else
+            moving = false;
     }
 
     private void FixedUpdate()

@@ -4,173 +4,216 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.AI;
 
-public class Stats : MonoBehaviour {
-    //Local Stats Instance
+public class Stats : MonoBehaviour
+{
     public static Stats instance;
-    
-    public PlayerController isPlayer;
-    public bool isDead;
-    public bool isBleeding;
-    public AudioClip[] hurtClips;
-    public AudioClip[] deadClips;
-    private AudioClip prevAudio;
-    [HideInInspector]
-    public AudioSource audioSource;
 
-    private ViewController viewController;
-    private float timer;
-
-    //Blood Shit
-    public int bleedAmount = 5;
-    public int bleedDelay = 2;
-    public float bleedThresholdPercent = 0.1f;
+    //Constant/Maximum Variables
+    private float _maxHealth = 100;
+    private float _maxBlood = 1000;
+    private float _maxHunger = 300;
+    private float _maxThirst = 300;
+    private int _maxBloodLossDelay = 10;
 
     //Survival Variables
-    public float currentThirst, maxThirst, currentHunger, maxHunger;
-    public float maxHealth;
-    public float health;
+    private float _blood;
+    private float _hunger;
+    private float _thirst;
+    private bool _bleeding;
 
-    public GameObject playerModel;
-    public GameObject playerRagdoll;
-    public GameObject playerCamera;
-    
-    private void Update()
+    //The Amount of time after variable has reached max before they are depleted again
+    private int t_thirstDelay = 180;
+    private int t_hungerDelay = 300;
+    //idk
+    private int t_thirstDep = 10;
+    private int t_hungerDep = 20;
+    //The amount of time after blood has been taken away before it can regenerate again;
+    private int t_bloodDelay = 300;
+    //The amount of time between regeneration i.e. wait 10s before 100 blood is added to your _blood
+    private int t_bloodRegenDelay = 10;
+    //The amount of time between subtracting blood from Blood
+    private float t_bloodLossDelay;
+
+    //Timer used to add Time.DeltaTime to
+    private float t_thirsty;
+    private float t_hungry;
+    private float t_thirst;
+    private float t_hunger;
+    private float t_blood;
+    private float t_bloodRegen;
+    private float t_bloodLoss;
+
+    private bool m_initialized = false;
+
+    public float BloodPercent { get { return (_blood / _maxBlood); } }
+    public float HungerPercent { get { return (_hunger / _maxHunger); } }
+    public float ThirstPercent { get { return (_thirst / _maxThirst); } }
+    public float OverallHealth
     {
-        if(isBleeding)
+        get
         {
-            timer += Time.deltaTime;
-            if(timer >= bleedDelay)
-            {
-                BloodDamage();
-                timer = 0f;
-            }
+            return ((BloodPercent + (HungerPercent * 2) + (ThirstPercent * 1.5f)) / 3);
         }
-    }
-
-    public void Init()
-    {
-        this.maxHealth = Game.instance.maxPlayerHealth;
-        health = Game.instance.startPlayerHealth;
-        viewController = GetComponent<ViewController>();
-
-
-        if (NetworkManager.connectionID != viewController.connectionID)
-            return;
-
-        instance = this;
-        isPlayer = GetComponent<PlayerController>();
-        audioSource = GetComponent<AudioSource>();
     }
 
     private void Awake()
     {
-        if(instance == null)
-        {
+        if (instance == null)
             instance = this;
-        }
-
-        isPlayer = GetComponent<PlayerController>();
-        viewController = GetComponent<ViewController>();
     }
 
-    public void Damage(float value)
+    private void Update()
     {
-        if (isDead)
+        BloodRegeneration();
+        Bleeding();
+        Hunger();
+        Thirst();
+    }
+
+    //SetupStats sets all the initial values and can only be called once to prevent cheating
+    public void SetupStats()
+    {
+        if(m_initialized)
+        {
+            Debug.LogError("SetupStats() has already been called once.");
             return;
+        }
+        _blood = _maxBlood;
+        _hunger = _maxHunger;
+        _thirst = _maxThirst;
 
-        health -= value;
-        if (health <= 0)
+        m_initialized = true;
+    }
+    public void SetupStats(float maxBlood, float maxHunger, float maxThirst)
+    {
+        if(m_initialized)
         {
-            Die();
+            Debug.LogError("SetupStats() has already been called once from the local machine.");
+            Console.LogError("SetupStats() has already been called once from the local machine.");
             return;
         }
-        if ((value / maxHealth) >= bleedThresholdPercent)
+
+        _maxBlood = maxBlood;
+        _maxHunger = maxHunger;
+        _maxThirst = maxThirst;
+        SetupStats();
+    }
+    public void SetupStats(float maxBlood, float maxHunger, float maxThirst, int thirstDelay, int hungerDelay)
+    {
+        t_thirstDelay = thirstDelay;
+        t_hungerDelay = hungerDelay;
+        SetupStats(maxBlood, maxHunger, maxThirst);
+    }
+    
+    public void Damage(float amount)
+    {
+        if(amount >= _maxBlood)
         {
-            isBleeding = true;
+            Console.LogWarning("Failed To Damage " + transform + " Because the Amount was Greater Than 'MaxBlood'");
+            return;
         }
-        if (audioSource != null)
-            PlayRandomOgSound(hurtClips);
 
-        ClientTCP.SendPlayerStats();
+        _blood -= amount;
 
-        Console.Log("You took " + value + " damage.");
-    }
-    public void SetHealth(float value)
-    {
-        if (value <= 0)
-            health = 1;
-
-        health = value;
-    }
-    private void BloodDamage()
-    {
-        health -= bleedAmount;
-        if(health <= 0)
+        if((amount / _maxBlood) >= 0.15f)
         {
-            Die();
+            _bleeding = true;
+            //Eventually make it so blood loss delay is effected by the amount of damage youve take i.e. more damge decreases the delay
+            //t_bloodLossDelay = t_bloodLossDelay * ((amount / (0.5f * _maxBlood) * (0.5f) * _maxBlood));
         }
-    }
-    public void Heal(float value)
-    {
-        health += value;
-    }
 
-    private void Hunger()
-    {
+        if(_blood <= (0.05f * _maxBlood))
+        {
+            Die("Blood Loss");
+        }
 
-    }
-    private void Thirst()
-    {
-
-    }
-
-    public void UpdateStats(float h, float hu, float t)
-    {
-        health = h;
-        currentHunger = hu;
-        currentThirst = t;
+        //Reset Blood Regeneration when you take damage
+        t_bloodRegen = 0;
     }
 
     public void Die()
     {
-        isDead = true;
-        if (audioSource != null)
-            PlayRandomOgSound(deadClips);
-        if (!isPlayer)
+        Die("No Reason");
+    }
+    public void Die(string reason)
+    {
+        Console.Log("You Have Died Due To: " + reason + "!");
+
+        //Implement Death Shit here
+    }
+
+    //Survival Functions
+    private void BloodRegeneration()
+    {
+        if (t_bloodRegen < t_bloodDelay)
         {
-            Debug.LogError("Code Not Implemented Yet!");
+            t_bloodRegen += Time.deltaTime;
+            return;
+        }
+
+        if(t_blood < t_bloodRegenDelay)
+        {
+            t_blood += Time.deltaTime;
+            return;
         }
         else
         {
-            GetComponent<PlayerController>().enabled = false;
+            _blood += 50;
+            t_blood = 0;
+            return;
         }
-
-        playerModel.SetActive(false);
-        playerRagdoll.SetActive(true);
-        playerCamera.SetActive(false);
-        GetComponent<Rigidbody>().isKinematic = true;
-        this.enabled = false;
     }
-    public void Reset()
+    private void Bleeding()
     {
-        isDead = false;
-        isBleeding = false;
-        SetHealth(maxHealth);
-    }
-
-    private void PlayRandomOgSound(AudioClip[] clips)
-    {
-        if (clips.Length < 1)
+        if (!_bleeding)
             return;
 
-        AudioClip ac = clips[Random.Range(0, clips.Length)];
-        while (ac == prevAudio && clips.Length > 1)
+        if (t_bloodLoss < t_bloodLossDelay)
         {
-            ac = clips[Random.Range(0, clips.Length)];
+            t_bloodLoss += Time.deltaTime;
+            return;
+        }
+        else
+        {
+            _blood -= 25;
+            t_bloodLoss = 0;
+            return;
+        }
+    }
+    private void Hunger()
+    {
+        if(t_hungry < t_hungerDelay)
+        {
+            t_hungry += Time.deltaTime;
+            return;
         }
 
-        audioSource.PlayOneShot(ac);
-        prevAudio = ac;
+        if(t_hunger < t_hungerDep)
+        {
+            t_hunger += Time.deltaTime;
+            return;
+        }
+        else
+        {
+            _hunger -= 25;
+        }
     }
+    private void Thirst()
+    {
+        if (t_thirsty < t_thirstDelay)
+        {
+            t_thirsty += Time.deltaTime;
+            return;
+        }
 
+        if (t_thirst < t_thirstDep)
+        {
+            t_thirst += Time.deltaTime;
+            return;
+        }
+        else
+        {
+            _thirst -= 25;
+        }
+    }
 }

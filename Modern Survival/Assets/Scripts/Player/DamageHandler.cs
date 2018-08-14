@@ -5,19 +5,14 @@ using UnityEngine;
 
 public class DamageHandler : MonoBehaviour
 {
-    private Stats localStats;
+    public Stats localStats;
     public float damageMultiplier;
-
-    private void Awake()
-    {
-        localStats = GetComponentInParent<Stats>();
-    }
 
     public void Damage(float amount)
     {
         try
         {
-            localStats.Damage((amount * damageMultiplier));
+            //localStats.Damage((amount * damageMultiplier));
         }
         catch (Exception e)
         {

@@ -1,0 +1,18 @@
+Player Health Situation:
+
+OverallHealth = (Blood% + (Hunger% * 2) + (Thirst% * 1.5)) / 3 * 100
+OverallHealth =  (75% + (25% * 2) + (80% * 1.5)) / 3
+
+Weapon Specs:
+	AK47( Civilian ) - Automatic=false, MaxAmmo=30, FireDelay(s)=0.2, AimSpeed=10, HipSpread=20, AimSpread=4
+	AK47( Military ) - Automatic=true, MaxAmmo=30, FireDelay(s)=0.2, AimSpeed=10, HipSpread=15, AimSpread=4
+	Sawed Off - Automatic=false, MaxAmmo=8, PelletCount=16, FireDelay(s)=1, AimSpeed=15, Spread=25
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	blank - Automatic=, MaxAmmo=, FireDelay(s)=, AimSpeed=, HipSpread=, AimSpread=
+	
+	

@@ -33,11 +33,11 @@ public class Consumable : BaseItem
 
     public override void Use(ViewController ply)
     {
-        ply.stats.Heal(_replenishment);
-        if(ply.stats.isBleeding)
-        {
-            ply.stats.isBleeding = !_stopsBleeding;
-        }
+        //ply.stats.Heal(_replenishment);
+        //if(ply.stats.isBleeding)
+        //{
+        //    ply.stats.isBleeding = !_stopsBleeding;
+        //}
     }
 
 

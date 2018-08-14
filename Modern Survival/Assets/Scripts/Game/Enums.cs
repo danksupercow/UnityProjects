@@ -36,3 +36,8 @@ public enum WeaponHoldType
     Handgun,
     Rifle
 }
+
+public enum AmmoType
+{
+    NineMM
+}

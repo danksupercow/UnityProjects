@@ -244,7 +244,7 @@ public class ClientHandleData : MonoBehaviour
         int id = buffer.ReadInteger();
         float dmg = buffer.ReadFloat();
 
-        NetworkManager.GetPlayerObjectFromID(id).GetComponent<Stats>().Damage(dmg);
+        //NetworkManager.GetPlayerObjectFromID(id).GetComponent<Stats>().Damage(dmg);
 
         buffer.Dispose();
     }

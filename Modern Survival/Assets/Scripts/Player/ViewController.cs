@@ -40,9 +40,6 @@ public class ViewController : MonoBehaviour {
     {
         CheckInput();
 
-        if (Stats.instance.isDead)
-            return;
-
         playerRay = cam.ScreenPointToRay(new Vector2(Screen.width / 2, Screen.height / 2));
 
         if(currentWeapon != null && currentWeapon.gameObject.activeSelf == false)

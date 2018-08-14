@@ -56,7 +56,7 @@ public abstract class ExplosiveBase : MonoBehaviour {
                 Stats s = cols[i].GetComponent<Stats>();
                 if (s != null)
                 {
-                    s.Damage(Damage);
+                    //s.Damage(Damage);
                 }
             }
         }

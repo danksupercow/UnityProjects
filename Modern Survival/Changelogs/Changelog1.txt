@@ -1,7 +1,33 @@
+Models:
 -Added VERY Basic PlayerModel w/ textures and Created Ragdoll Prefab
--Fixed Server Unable to Create and Write to new 'Player' objects
+-Modeled & Textured New 'Sawed Off' Gun
+-Modeled & Textured New 'Axe' weapon / tool
+
+Animations:
+-Added Walk Cycle, Run Cycle, Idle, Crouch, Crouch Walk animations for "VERY Basic PlayerModel"
+
+Weapons:
+-Created 'Military AK47' texture and Miltary AK47
+	with lower hip fire angle and fully automatic capability
+-Created 'Sawed Off' firearm with pumpaction sound and high pellet spread
+
+Mechanics:
 -Implemented Object Pooling( Currently Only for Impac Effects )
 -Implemented Server Kicking
 -Implemented Suicide Console Command( 'kill' / 'suicide' )
--Added Player Ragdoll on Death
--Modeled & Textured New 'Sawed Off' Gun
+-Implemented FireArm Reload
+-Implemented Player Animations to Gameplay
+
+Development:
+-Setup foundation for Unity ECS implementation( Included the libraries/other in manifest.json )
+
+Fixes:
+-Fixed Server Unable to Create and Write to new 'Player' objects ( I think )
+
+Thoughts:
+Overall I Haven't done much in Networking development this update but added some new mechanics. Some of the
+things i'm proud of accomplishing is: Converting all projectile weapon classes the a hybrid of RayCasting and Physical
+Projectile, Implemented a character with animations( walk, run, crouch/walk, and idle ), and Modeled and Textured a
+new shotgun, this is a replacement for the old non effecient one)
+
+

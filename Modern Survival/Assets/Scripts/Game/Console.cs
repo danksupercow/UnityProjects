@@ -97,7 +97,7 @@ public class Console : MonoBehaviour
         }
         if(input.ToLower() == "kill")
         {
-            Stats.instance.Die();
+            //Stats.instance.Die();
         }
     }
 }

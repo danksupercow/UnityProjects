@@ -15,6 +15,7 @@ public class ParticleEffect : MonoBehaviour, IPooledObject
     public void OnObjectSpawn()
     {
         particle.Play();
-        audio.Play();
+        if(audio != null)
+            audio.Play();
     }
 }

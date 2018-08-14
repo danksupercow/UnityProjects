@@ -35,8 +35,8 @@ public class UIController : MonoBehaviour {
             deathScreen.SetActive(false);
         }
 
-        bleedingNotification.SetActive(localStats.isBleeding);
-        healthBar.fillAmount = (localStats.health / Game.instance.maxPlayerHealth);
+        //bleedingNotification.SetActive(localStats.isBleeding);
+        //healthBar.fillAmount = (localStats.health / Game.instance.maxPlayerHealth);
     }
 
     public void Respawn()
@@ -45,6 +45,6 @@ public class UIController : MonoBehaviour {
         transform.rotation = Quaternion.identity;
         ply.enabled = true;
         localStats.enabled = true;
-        localStats.Reset();
+        //localStats.Reset();
     }
 }

@@ -8,30 +8,34 @@ public abstract class WeaponBase : MonoBehaviour
     public Projectile projectile;
     public float fireForce = 100f;
     public float maxRaycastDist = 20f;
-    protected float damage;
+    public float damage = 50f;
     public int maxAmmo = 0; // 0 = infinite ammo
 
+    [Header("Fire Info: ")]
     public float fireDelay = 0.1f;
+    public float hitForce = 100;
+    public bool isAutomatic = false;
     public string primaryFire = "Fire1";
     public string secondaryFire = "Fire2";
-
-    public LayerMask layerMask = -1;
-    public bool isAutomatic = false;
-    public bool isAiming = false;
+    
+    [Header("Aim Info: ")]
     public float aimSpeed = 5;
-    public float hitForce = 100;
-
     public Vector3 aimPosition;
     public Vector3 hipPosition;
+
     protected Transform muzzle;
     protected ParticleSystem muzzleFlash;
 
+    [Header("Audio Info: ")]
     public AudioClip primaryFireSound;
     public AudioClip reloadSound;
     protected AudioSource audioSource;
 
     private bool readyToFire = true;
     private int currentAmmo;
+
+    protected bool canFire = true;
+    protected bool isAiming = false;
 
     protected abstract void PrimaryFire();
 
@@ -62,6 +66,11 @@ public abstract class WeaponBase : MonoBehaviour
 
         isAiming = Input.GetButton(secondaryFire);
 
+        if(Input.GetButtonDown("Reload"))
+        {
+            StartCoroutine(Reload());
+        }
+
         if (isAutomatic)
         {
             primaryPressed = Input.GetButton(primaryFire);
@@ -73,7 +82,7 @@ public abstract class WeaponBase : MonoBehaviour
 
         if (primaryPressed)
         {
-            if (readyToFire && (currentAmmo > 0 || maxAmmo == 0))
+            if (readyToFire && canFire && (currentAmmo > 0 || maxAmmo == 0))
             {
                 PrimaryFire();
                 readyToFire = false;
@@ -120,5 +129,18 @@ public abstract class WeaponBase : MonoBehaviour
     protected virtual void SpawnImpactEffect(string tag, Vector3 pos)
     {
         ObjectPooler.instance.SpawnFromPool(Game.GetSlugFromTag(tag), pos, Quaternion.identity);
+    }
+
+    protected virtual IEnumerator Reload()
+    {
+        if (maxAmmo > 0)
+        {
+            canFire = false;
+            audioSource.PlayOneShot(reloadSound);
+            yield return new WaitForSeconds(reloadSound.length + 0.1f);
+            currentAmmo = maxAmmo;
+            canFire = true;
+        }
+
     }
 }

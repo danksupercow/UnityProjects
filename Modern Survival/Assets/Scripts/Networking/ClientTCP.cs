@@ -160,9 +160,9 @@ public class ClientTCP
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerStats);
 
-        buffer.WriteFloat(s.health);
-        buffer.WriteFloat(s.currentHunger);
-        buffer.WriteFloat(s.currentThirst);
+        //buffer.WriteFloat(s.health);
+        //buffer.WriteFloat(s.currentHunger);
+        //buffer.WriteFloat(s.currentThirst);
 
         SendData(buffer.ToArray());
         buffer.Dispose();

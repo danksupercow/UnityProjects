@@ -17,6 +17,9 @@ public class Prop : MonoBehaviour
 
     private void OnCollisionEnter(Collision col)
     {
-        audioSource.PlayOneShot(impactSounds[Random.Range(0, impactSounds.Length)]);
+        if(impactSounds.Length > 0)
+        {
+            audioSource.PlayOneShot(impactSounds[Random.Range(0, impactSounds.Length)]);
+        }
     }
 }
