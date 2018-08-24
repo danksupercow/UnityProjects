@@ -7,7 +7,6 @@ namespace DedicatedServer
     class Program
     {
         private static Thread threadConsole;
-        private static string command;
 
         static void Main(string[] args)
         {
@@ -39,27 +38,7 @@ namespace DedicatedServer
         {
             while(true)
             {
-                command = Console.ReadLine().ToLower();
-
-                if(command == "quit" || command == "stop")
-                {
-                    ServerTCP.CloseNetwork();
-                    Environment.Exit(0);
-                }
-
-                if(command == "newprop")
-                {
-                    General.CreateGameRulesFile();
-                }
-
-                if(command.StartsWith("kick"))
-                {
-                    string s = string.Empty;
-                    if(command.Length >= 7)
-                        s = command.Substring(7);
-                    string[] temps = command.Split(' ');
-                    ServerTCP.Clients[int.Parse(temps[1])].Kick(s);
-                }
+                Command.Check();
             }
         }
     }

@@ -16,5 +16,15 @@ public enum PacketType
     ItemData,
     GameRules,
     Damage,
-    NetSpawn
+    NetSpawn,
+    SyncPosition,
+    SyncRotation,
+    SyncAnimation
+}
+
+public enum AnimationType
+{
+    Bool = 1,
+    Float,
+    Trigger
 }

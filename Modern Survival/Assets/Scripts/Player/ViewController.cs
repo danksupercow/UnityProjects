@@ -13,6 +13,7 @@ public class ViewController : MonoBehaviour {
     private WeaponBase currentWeapon;
     private ExplosiveBase currentExplosive;
     public int connectionID;
+    public SyncAnimator animator;
 
     Stats localStats;
 
@@ -21,6 +22,7 @@ public class ViewController : MonoBehaviour {
     private void Start()
     {
         localStats = GetComponent<Stats>();
+        animator = GetComponent<SyncAnimator>();
         
         instance = this;
         if(hand.childCount > 0)
@@ -72,6 +74,14 @@ public class ViewController : MonoBehaviour {
 
         if (currentExplosive != null && currentExplosive.gameObject.activeSelf && !PlayerController.instance.toggleEscMenu)
             currentExplosive.CallUpdate();
+
+        if(Input.GetButton("Fire2"))
+        {
+            animator.SetBool("AimHandgun", true);
+        }else
+        {
+            animator.SetBool("AimHandgun", false);
+        }
     }
 
     void CheckInput()
@@ -79,6 +89,11 @@ public class ViewController : MonoBehaviour {
         if(Input.GetButtonDown("Console"))
         {
             Console.Toggle();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q) && NetworkManager.instance != null && NetworkManager.Connected)
+        {
+            ClientTCP.SpawnRegisteredPrefab("billy_the_kid", new Vector3(5, 1, 5), Quaternion.identity);
         }
     }
 }

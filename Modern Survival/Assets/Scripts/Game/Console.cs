@@ -28,6 +28,7 @@ public class Console : MonoBehaviour
 
     public static void Log(object input)
     {
+        Debug.Log(input);
         if (instance == null) return;
 
         instance.consoleString += (" - " + input.ToString() + "\n");
@@ -35,6 +36,7 @@ public class Console : MonoBehaviour
 
     public static void LogError(object input)
     {
+        Debug.LogError(input);
         if (instance == null) return;
 
         instance.consoleString += (" - <color=#800000ff>[ ERROR ] " + input.ToString() + "</color>\n");
@@ -42,6 +44,7 @@ public class Console : MonoBehaviour
 
     public static void LogWarning(object input)
     {
+        Debug.LogWarning(input);
         if (instance == null) return;
 
         instance.consoleString += (" - <color=#ffff00ff>[ WARNING ] " + input.ToString() + "</color>\n");

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Net.Sockets;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,12 +18,14 @@ public class ClientTCP
     private static string currentIP;
     private static int currentPort = -1;
 
+    public bool Connected { get { return connected; } }
+
     public static string CurrentIP { get { return currentIP; } }
     public static int CurrentPort { get { return currentPort; } }
 
     public void Connect()
     {
-        Connect("127.0.0.1", 5555);
+        Connect("192.168.2.9", 5555);
     }
 
     public void Connect(string ip, int port)
@@ -43,7 +47,7 @@ public class ClientTCP
     {
         currentIP = string.Empty;
         currentPort = -1;
-        if(playerSocket != null)
+        if (playerSocket != null)
         {
             playerSocket.Close();
         }
@@ -51,10 +55,11 @@ public class ClientTCP
 
     private void ConnectCallback(IAsyncResult ar)
     {
+        
         try
         {
             playerSocket.EndConnect(ar);
-            if(playerSocket.Connected == false)
+            if (playerSocket.Connected == false)
             {
                 currentIP = string.Empty;
                 currentPort = -1;
@@ -72,11 +77,11 @@ public class ClientTCP
                 connected = true;
                 connecting = false;
                 SendPlayerData();
-                Console.Log("[Client] Successfully connected server at " + currentIP + ":" + currentPort);
+                Debug.Log("[Client] Successfully connected server at " + currentIP + ":" + currentPort);
 
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             currentIP = string.Empty;
             currentPort = -1;
@@ -103,12 +108,12 @@ public class ClientTCP
         }
         catch
         {
-            Console.LogError("Connection to Server " + currentIP + ":" + currentPort + " Was Lost.");
+            Debug.LogError("Connection to Server " + currentIP + ":" + currentPort + " Was Lost.");
             currentIP = string.Empty;
             currentPort = -1;
             connected = false;
             connecting = false;
-            NetworkManager.DestroyAllPlayers();
+            //NetworkManager.DestroyAllPlayers();
         }
     }
 
@@ -124,31 +129,43 @@ public class ClientTCP
     {
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.PlayerData);
-
         ServerData sd = NetworkManager.FetchServerData(currentIP, currentPort);
-
+        
         buffer.WriteString(sd.UID);
         buffer.WriteString(sd.Name);
-
+        
         SendData(buffer.ToArray());
     }
-
-    public static void SendMovement(Vector3 pos, Quaternion rot)
+    
+    public static void SendSyncPosition(int syncObjID, NetworkObjectType type, Vector3 pos)
     {
         ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteLong((long)PacketType.PlayerMove);
-        
-        //position
+
+        buffer.WriteLong((long)PacketType.SyncPosition);
+        buffer.WriteLong((long)type);
+        buffer.WriteInteger(syncObjID);
+
         buffer.WriteFloat(pos.x);
         buffer.WriteFloat(pos.y);
         buffer.WriteFloat(pos.z);
 
-        //rotation
-        buffer.WriteFloat(General.UnwrapAngle(rot.x));
-        buffer.WriteFloat(General.UnwrapAngle(rot.y));
-        buffer.WriteFloat(General.UnwrapAngle(rot.z));
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
 
-        //Sending Data
+    public static void SendSyncRotation(int syncObjID, NetworkObjectType type, Quaternion rot)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+
+        buffer.WriteLong((long)PacketType.SyncRotation);
+        buffer.WriteLong((long)type);
+        buffer.WriteInteger(syncObjID);
+
+        buffer.WriteFloat(rot.x);
+        buffer.WriteFloat(rot.y);
+        buffer.WriteFloat(rot.z);
+        buffer.WriteFloat(rot.w);
+
         SendData(buffer.ToArray());
         buffer.Dispose();
     }
@@ -179,6 +196,50 @@ public class ClientTCP
         buffer.Dispose();
     }
 
+    public static void SendAnimationData(int syncID, string id, bool value)
+    {
+        int i = (value == true) ? 1 : 0;
+
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.SyncAnimation);
+        buffer.WriteLong((long)AnimationType.Bool);
+
+        buffer.WriteInteger(syncID);
+        buffer.WriteString(id);
+        buffer.WriteInteger(i); //This is the bool value for SetBool
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
+
+    public static void SendAnimationData(int syncID, string id, float value)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.SyncAnimation);
+        buffer.WriteLong((long)AnimationType.Float);
+
+        buffer.WriteInteger(syncID);
+        buffer.WriteString(id);
+
+        buffer.WriteFloat(value); //This is the float value for SetFloat
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
+    
+    public static void SendAnimationData(int syncID, string id)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteLong((long)PacketType.SyncAnimation);
+        buffer.WriteLong((long)AnimationType.Trigger);
+
+        buffer.WriteInteger(syncID);
+        buffer.WriteString(id);
+
+        SendData(buffer.ToArray());
+        buffer.Dispose();
+    }
+
     public static void SpawnRegisteredPrefab(string slug, Vector3 pos, Quaternion rot)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -193,9 +254,10 @@ public class ClientTCP
         buffer.WriteFloat(pos.z);
 
         //Send Server The rotation of the object you want to spawn...
-        buffer.WriteFloat(General.UnwrapAngle(rot.x));
-        buffer.WriteFloat(General.UnwrapAngle(rot.y));
-        buffer.WriteFloat(General.UnwrapAngle(rot.z));
+        buffer.WriteFloat(rot.x);
+        buffer.WriteFloat(rot.y);
+        buffer.WriteFloat(rot.z);
+        buffer.WriteFloat(rot.w);
 
         //Finally, Convert ByteBuffer to byte[] and Send to the server then dispose the buffer.
         SendData(buffer.ToArray());

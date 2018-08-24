@@ -66,10 +66,12 @@ public abstract class WeaponBase : MonoBehaviour
 
         isAiming = Input.GetButton(secondaryFire);
 
-        if(Input.GetButtonDown("Reload"))
+        /*
+        if(Input.GetButtonDown(""))
         {
+            return;
             StartCoroutine(Reload());
-        }
+        }*/
 
         if (isAutomatic)
         {

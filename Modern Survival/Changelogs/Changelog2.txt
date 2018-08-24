@@ -1,0 +1,15 @@
+Animations:
+-Added Jump, Falling, and Landing Animations
+-Created and Temporarily Implmented Punch animation
+-Created Strafe, Lean, and Damaged animations
+
+Netorking:
+-Fixed Sync Rotation and Optimized For Player
+-Added 'SyncObject' Base Class for Syncing Objects across network
+-Implemented Object Syncing for Rotation and Position
+-Server Stores Spawned Prefabs and Tells Connected Client To Spawn all of them at there stored position/rotation
+	on connect
+
+Server:
+-Added 'clear' command to clear to the console
+-Began rewriting another dedicted server with better organized code and terms

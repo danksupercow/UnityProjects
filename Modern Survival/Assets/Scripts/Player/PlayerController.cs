@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour {
-
+    
     public static PlayerController instance;
 
     public float mouseSensitivityX = 250f;
@@ -16,10 +16,16 @@ public class PlayerController : MonoBehaviour {
     public float walkSpeed = 8f;
     public float runSpeed = 12f;
     public float jumpForce = 220f;
-    public Animator animator;
-    private float moveSpeed;
-    private float groundDistance;
 
+    public LayerMask groundedMask;
+    public float groundedThreshold = 0.1f;
+    public float fallingDistance = 5f;
+
+    public SyncAnimator animator;
+    private float moveSpeed;
+    public float groundDistance;
+
+    [HideInInspector]
     public bool toggleEscMenu = false;
 
     //Player Components
@@ -27,22 +33,36 @@ public class PlayerController : MonoBehaviour {
 
     Transform cameraT;
     float verticalClamp;
-
+    float t_grounded;
+    
     Vector3 moveAmount;
     Vector3 smoothMoveVelocity;
-    Vector3 lastPosition;
+    Vector3 moveDir;
 
     public bool grounded;
-    public bool moving;
-    public bool running;
-    public bool crouched;
 
-    public float animMove = 0f;
-
+    private float animMove = 0f;
+    public float animationTransition = 5f;
+    public float speedTransition = 1.5f;
+    
     //Private
     private Camera cam;
+    [SerializeField]
+    private Camera fpp;
+    [SerializeField]
+    private Camera tpp;
+
+    private bool b_fpp;
+
+    private PlayerAnimationController animationController;
+
     public Camera Camera { get { return cam; } }
-    
+
+    private void Awake()
+    {
+        animationController = GetComponent<PlayerAnimationController>();
+    }
+
     private void Start()
     {
         instance = this;
@@ -56,55 +76,105 @@ public class PlayerController : MonoBehaviour {
 
     private void Update()
     {
-        crouched = Input.GetButton("Crouch");
+        if (Input.GetButtonDown("ToggleView"))
+            b_fpp = !b_fpp;
+
+        if (b_fpp)
+        {
+            tpp.gameObject.SetActive(false);
+            fpp.gameObject.SetActive(true);
+            cam = fpp;
+        }else
+        {
+            tpp.gameObject.SetActive(true);
+            fpp.gameObject.SetActive(false);
+            cam = fpp;
+        }
 
         if (Input.GetButtonDown("Cancel"))
         {
             toggleEscMenu = !toggleEscMenu;
         }
 
-        if (Input.GetButton("Run") && moving && !crouched)
-        {
-            running = true;
-            moveSpeed = Mathf.Lerp(moveSpeed, runSpeed, 0.5f);
-            animMove = Mathf.Lerp(animMove, 1.0f, 5f * Time.deltaTime);
-        }
-        else if(moving)
-        {
-            running = false;
-            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, 5f * Time.deltaTime);
-            animMove = Mathf.Lerp(animMove, 0.5f, 5f * Time.deltaTime);
-        }
+        if (moveDir.z == 1)
+            animationController.movingForward = true;
         else
-        {
-            running = false;
-            moveSpeed = Mathf.Lerp(moveSpeed, 0f, 5f * Time.deltaTime);
-            animMove = Mathf.Lerp(animMove, 0.0f, 5f * Time.deltaTime);
-        }
+            animationController.movingForward = false;
 
-        if (crouched && moving && !running)
-        {
-            Debug.Log("Crouch Walking");
-            moveSpeed = Mathf.Lerp(moveSpeed, crouchSpeed, 5f * Time.deltaTime);
-            animMove = Mathf.Lerp(animMove, 0.5f, 5f * Time.deltaTime);
-        }
-        else if(!moving && !running)
-        {
-            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, 5f * Time.deltaTime);
-            animMove = Mathf.Lerp(animMove, 0.0f, 5f * Time.deltaTime);
-        }
-
-        animator.SetBool("isCrouched", crouched);
-
-        if (groundDistance <= 0.2f)
-        {
-            grounded = true;
-        }
+        if (moveDir.z == -1)
+            animationController.movingBackward = true;
         else
+            animationController.movingBackward = false;
+
+        if (moveDir.z == -1)
         {
-            grounded = false;
+            animMove = 0.5f;
+        }
+
+        if (Input.GetButton("Run") && animationController.movingForward && !animationController.crouched)
+        {
+            animationController.running = true;
+            moveSpeed = Mathf.Lerp(moveSpeed, runSpeed, speedTransition);
+            animMove = 1.5f;
+        }
+        else if(animationController.movingForward)
+        {
+            animationController.running = false;
+            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, speedTransition);
+        }
+
+        if (animationController.movingBackward)
+        {
+            animationController.running = false;
+            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, speedTransition * Time.deltaTime);
+            animMove = 1f;
+        }
+
+        if (!animationController.movingForward)
+        {
+            animationController.running = false;
+            moveSpeed = Mathf.Lerp(moveSpeed, 0f, speedTransition * Time.deltaTime);
+            animMove = 0f;
+        }
+
+        if(animationController.movingForward && !animationController.running)
+        {
+            animMove = 1f;
+        }
+
+        if(animationController.movingBackward)
+        {
+            animMove = 0.5f;
+        }
+
+        if (animationController.crouched && animationController.movingForward && !animationController.running)
+        {
+            moveSpeed = Mathf.Lerp(moveSpeed, crouchSpeed, speedTransition * Time.deltaTime);
+            animMove = 1;
+        }
+
+        if (!animationController.movingForward && !animationController.running)
+        {
+            moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, speedTransition * Time.deltaTime);
+            animMove = 0f;
         }
         
+        if (groundDistance <= groundedThreshold)
+        {
+            grounded = true;
+            animationController.falling = false;
+        }
+        else if(groundDistance >= fallingDistance && t_grounded >= 0.25f)
+        {
+            animationController.falling = true;
+            grounded = false;
+        }
+        else
+        {
+            animationController.falling = false;
+            grounded = false;
+        }
+
         if (toggleEscMenu)
         {
             Cursor.visible = true;
@@ -120,30 +190,28 @@ public class PlayerController : MonoBehaviour {
         if (Input.GetButtonDown("Jump"))
         {
             if (grounded)
+            {
+                animationController.Jump();
                 rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+            }
         }
 
         Ray ray = new Ray(transform.position, Vector3.down);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, groundedMask))
         {
             groundDistance = hit.distance;
-            if(crouched && groundDistance <= 0.5f)
-            {
-                transform.position = hit.point;
-            }
         }
 
-        animator.SetFloat("speedPercent", animMove);
+
+
+        animationController.grounded = grounded;
+        animationController.animMove = animMove;
+        animationController.animationTransition = animationTransition;
 
         Move();
 
-    }
-
-    private void LateUpdate()
-    {
-        NetSendMove();
     }
 
     private void Move()
@@ -153,17 +221,22 @@ public class PlayerController : MonoBehaviour {
         verticalClamp = Mathf.Clamp(verticalClamp, -60, 60);
         cam.transform.localEulerAngles = Vector3.left * verticalClamp;
 
+        if (grounded)
+            t_grounded = 0f;
+
         if (!grounded)
+            t_grounded += Time.deltaTime;
+
+        if(t_grounded >= 0.25f)
+        {
             return;
+        }
         
-        Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
+        moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
         Vector3 targetMoveAmount = moveDir * moveSpeed;
         moveAmount = Vector3.SmoothDamp(moveAmount, targetMoveAmount, ref smoothMoveVelocity, 0.15f);
-        
-        if (targetMoveAmount != Vector3.zero)
-            moving = true;
-        else
-            moving = false;
+
+        //transform.Translate(moveDir * moveSpeed * Time.deltaTime);
     }
 
     private void FixedUpdate()
@@ -173,15 +246,4 @@ public class PlayerController : MonoBehaviour {
 
         rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
     }
-    
-    private void NetSendMove()
-    {
-
-        if(Vector3.Distance(lastPosition, transform.position) >= 0.2f && NetworkManager.instance != null && NetworkManager.Socket != null)
-        {
-            ClientTCP.SendMovement(transform.position, transform.rotation);
-            lastPosition = transform.position;
-        }
-    }
-
 }

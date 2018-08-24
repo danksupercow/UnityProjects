@@ -26,9 +26,10 @@ public class General
             return angle;
 
         angle = -angle % 360;
+
         return 360 - angle;
     }
-    
+
     public static void CreateJsonFileFromItem(BaseItem item)
     {
         string path = Path.Combine(ItemsPath, item.Slug + ".json");

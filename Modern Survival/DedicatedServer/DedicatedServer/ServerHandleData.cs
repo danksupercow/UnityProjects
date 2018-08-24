@@ -14,10 +14,12 @@ public class ServerHandleData
     {
         packets = new Dictionary<long, Packet_>();
         packets.Add((long)PacketType.PlayerData, PACKET_PLAYERDATA);
-        packets.Add((long)PacketType.PlayerMove, PACKET_PLAYERMOVE);
         packets.Add((long)PacketType.PlayerStats, PACKET_PLAYERSTATS);
         packets.Add((long)PacketType.Damage, PACKET_DAMAGE);
         packets.Add((long)PacketType.NetSpawn, PACKET_NETSPAWN);
+        packets.Add((long)PacketType.SyncPosition, PACKET_SYNCPOSITION);
+        packets.Add((long)PacketType.SyncRotation, PACKET_SYNCROTATION);
+        packets.Add((long)PacketType.SyncAnimation, PACKET_SYNCANIMATION);
     }
 
     public static void HandleData(long connectionID, byte[] data)
@@ -74,9 +76,10 @@ public class ServerHandleData
     public static void HandleDataPackets(long connectionID, byte[] data)
     {
         long packetnum; ByteBuffer buffer; Packet_ packet;
-
+        
         buffer = new ByteBuffer();
         buffer.WriteBytes(data);
+
         packetnum = buffer.ReadLong();
         buffer = null;
 
@@ -98,36 +101,17 @@ public class ServerHandleData
         string uid = buffer.ReadString();
         string name = buffer.ReadString();
 
-        if(ServerTCP.SavedPlayers.GetPlayerFromUID(uid) == null)
+        Console.WriteLine("Received Player Data");
+
+        if(ServerTCP.SavedPlayers.GetPlayerFromUID(uid) == default(Player))
         {
-            ServerTCP.SavedPlayers.SavePlayer(new Player(uid));
+            Player p = default(Player);
+            p.UID = uid;
+            ServerTCP.SavedPlayers.SavePlayer(p);
             ServerTCP.Clients[connectionID].player = ServerTCP.SavedPlayers.GetPlayerFromUID(uid);
         }
     }
-
-    private static void PACKET_PLAYERMOVE(long connectionID, byte[] data)
-    {
-        ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteBytes(data);
-
-        long packetnum = buffer.ReadLong();
-
-        float x = buffer.ReadFloat();
-        float y = buffer.ReadFloat();
-        float z = buffer.ReadFloat();
-
-        float rotX = buffer.ReadFloat();
-        float rotY = buffer.ReadFloat();
-        float rotZ = buffer.ReadFloat();
-
-        //Update Players Stored Position
-        ServerTCP.Clients[connectionID].player.UpdateTransform(x, y, z);
-
-        ServerTCP.SendPlayerMove((int)connectionID, x, y, z, rotX, rotY, rotZ);
-        buffer.Dispose();
-
-    }
-
+    
     private static void PACKET_PLAYERSTATS(long connectionID, byte[] data)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -138,7 +122,11 @@ public class ServerHandleData
         float hunger = buffer.ReadFloat();
         float thirst = buffer.ReadFloat();
 
-        ServerTCP.Clients[connectionID].player.UpdateStats(health, hunger, thirst);
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine("Player Stats for Client: " + connectionID + " were Received but the Code has not yet been Implmented To Handle It!");
+        Console.ResetColor();
+
+        //ServerTCP.Clients[connectionID].player.UpdateStats(health, hunger, thirst);
     }
 
     private static void PACKET_DAMAGE(long connectionID, byte[] data)
@@ -170,8 +158,47 @@ public class ServerHandleData
         float rotX = buffer.ReadFloat();
         float rotY = buffer.ReadFloat();
         float rotZ = buffer.ReadFloat();
+        float rotW = buffer.ReadFloat();
 
-        ServerTCP.SendNetSpawnRequest((int)connectionID, slug, x, y, z, rotX, rotY, rotZ);
+        ServerTCP.SendNetSpawnRequest((int)connectionID, slug, x, y, z, rotX, rotY, rotZ, rotW);
         buffer.Dispose();
+    }
+
+    private static void PACKET_SYNCPOSITION(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        long type = buffer.ReadLong();
+        int syncObjID = buffer.ReadInteger();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+
+        ServerTCP.SendSyncPosition((int)connectionID, type, syncObjID, x, y, z);
+        buffer.Dispose();
+    }
+
+    private static void PACKET_SYNCROTATION(long connectionID, byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        long type = buffer.ReadLong();
+        int syncObjID = buffer.ReadInteger();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+        float w = buffer.ReadFloat();
+
+        ServerTCP.SendSyncRotation((int)connectionID, type, syncObjID, x, y, z, w);
+        buffer.Dispose();
+    }
+
+    private static void PACKET_SYNCANIMATION(long connectionID, byte[] data)
+    {
+        ServerTCP.SendSyncAnimation((int)connectionID, data); //Just Relay the data
     }
 }

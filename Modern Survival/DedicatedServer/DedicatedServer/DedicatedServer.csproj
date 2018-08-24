@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
+    <Compile Include="Command.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Players.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerHandleData.cs" />
     <Compile Include="ServerTCP.cs" />
+    <Compile Include="SpawnedPrefab.cs" />
     <Compile Include="Types.cs" />
   </ItemGroup>
   <ItemGroup>

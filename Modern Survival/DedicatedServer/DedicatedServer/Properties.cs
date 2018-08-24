@@ -14,14 +14,12 @@ public class Properties
     public float MAX_PLAYER_HEALTH = 500;
     [JsonProperty("playerstartinghealth")]
     public float PLAYER_STARTING_HEALTH = 250;
-    [JsonProperty("bloodimpactpoolamount")]
-    public int BLOOD_IMPACT_POOL_AMOUNT = 300;
-    [JsonProperty("rockimpactpoolamount")]
-    public int ROCK_IMPACT_POOL_AMOUNT = 300;
-    [JsonProperty("dirtimpactpoolamount")]
-    public int DIRT_IMPACT_POOL_AMOUNT = 300;
-    [JsonProperty("glassimpactpoolamount")]
-    public int GLASS_IMPACT_POOL_AMOUNT = 100;
+    [JsonProperty("positionsendthreshold")]
+    public float POSITION_SEND_THRESHOLD = 0.5f;
+    [JsonProperty("rotationsendthreshold")]
+    public float ROTATION_SEND_THRESHOLD = 0.5f;
+    [JsonProperty("particlepoolsize")]
+    public int PARTICLE_POOL_SIZE = 300;
 
     public string ToJson()
     {

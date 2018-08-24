@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -16,15 +17,73 @@ public class ServerTCP
     //Server Item Info
     public static string[] itemFiles;
 
+    public struct ServerData
+    {
+        public List<SpawnedPrefab> spawnedPrefabs;
+        public int Index { get { return spawnedPrefabs.Count; } }
+
+        public void RegisterObject(string slug, float x, float y, float z, float rotX, float rotY, float rotZ, float rotW)
+        {
+            SpawnedPrefab sp;
+            Vector3 pos;
+            Quaternion rot;
+            Transform t;
+
+            sp.slug = slug;
+            sp.assignedID = Index + 1;
+
+            pos.x = x;
+            pos.y = y;
+            pos.z = z;
+
+            rot.x = rotX;
+            rot.y = rotY;
+            rot.z = rotZ;
+            rot.w = rotW;
+
+            t.position = pos;
+            t.rotation = rot;
+
+            sp.transform = t;
+
+            spawnedPrefabs.Add(sp);
+        }
+        public void UpdateObject(int objectID, Vector3 pos)
+        {
+            int index = objectID - 1;
+            if (index == -1 || index > spawnedPrefabs.Count - 1)
+                return;
+            SpawnedPrefab sp = spawnedPrefabs[index].Copy();
+            sp.transform.position = pos;
+            spawnedPrefabs[index] = sp;
+        }
+        public void UpdateObject(int objectID, Quaternion rot)
+        {
+            int index = objectID - 1;
+            if (index == -1 || index > spawnedPrefabs.Count - 1)
+                return;
+
+            SpawnedPrefab sp = spawnedPrefabs[index].Copy();
+            sp.transform.rotation = rot;
+            spawnedPrefabs[index] = sp;
+        }
+    }
+
+    private static ServerData _data;
+
     public static void InitNetwork()
     {
         serverSocket = new TcpListener(IPAddress.Any, 5555);
         serverSocket.Start();
         serverSocket.BeginAcceptTcpClient(OnClientConnect, null);
-        LoadJsonItems();
         Clients = new Client[Constants.GAMERULES.MAX_PLAYER_COUNT];
-        General.LoadPlayersInfo();
-        Console.WriteLine(SavedPlayers.Count);
+
+        _data.spawnedPrefabs = new List<SpawnedPrefab>();   //                    <----[ This is where ill add loading spawned objects on startup from saved file later ]
+
+        //LoadJsonItems();                                                        <----[  ADD BACK LATER  ]
+        //General.LoadPlayersInfo();                                              <----[  ADD BACK LATER  ]
+
+
         Console.WriteLine("Server Started Successfully :D");
     }
     public static void CloseNetwork()
@@ -34,6 +93,12 @@ public class ServerTCP
 
     private static void OnClientConnect(IAsyncResult ar)
     {
+        if (serverSocket == null || ar == null)
+        {
+            Console.WriteLine("Result Returned NULL");
+            return;
+        }
+
         TcpClient client = serverSocket.EndAcceptTcpClient(ar);
         serverSocket.BeginAcceptTcpClient(OnClientConnect, null);
         client.NoDelay = false;
@@ -47,11 +112,15 @@ public class ServerTCP
                 Console.WriteLine("Connection received from " + Clients[i].ip);
                 Console.ResetColor();
                 SendWelcomeMessage(i);
+
+                /*
                 for (int x = 0; x < itemFiles.Length; x++)
                 {
                     SendItemDataTo(i, itemFiles[x]);
-                }
+                }*/
+
                 SendInWorld(i);
+                SendSpawnedObjects(i);
                 return;
             }
         }
@@ -66,9 +135,14 @@ public class ServerTCP
         buffer.WriteInteger(connectionID);
 
         Player p = Clients[connectionID].player;
-        buffer.WriteFloat(p.PosX);
-        buffer.WriteFloat(p.PosY);
-        buffer.WriteFloat(p.PosZ);
+        buffer.WriteFloat(p.Transform.position.x);
+        buffer.WriteFloat(p.Transform.position.y);
+        buffer.WriteFloat(p.Transform.position.z);
+
+        buffer.WriteFloat(p.Transform.rotation.x);
+        buffer.WriteFloat(p.Transform.rotation.y);
+        buffer.WriteFloat(p.Transform.rotation.z);
+        buffer.WriteFloat(p.Transform.rotation.w);
 
         buffer.WriteFloat(p.Health);
         buffer.WriteFloat(p.Hunger);
@@ -79,11 +153,18 @@ public class ServerTCP
 
     public static void SendDataTo(long connectionID, byte[] data)
     {
-        ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteLong((data.GetUpperBound(0) - data.GetLowerBound(0)) + 1);
-        buffer.WriteBytes(data);
-        Clients[connectionID].myStream.BeginWrite(buffer.ToArray(), 0, buffer.ToArray().Length, null, null);
-        buffer = null;
+        try
+        {
+            ByteBuffer buffer = new ByteBuffer();
+            buffer.WriteLong((data.GetUpperBound(0) - data.GetLowerBound(0)) + 1);
+            buffer.WriteBytes(data);
+            Clients[connectionID].myStream.BeginWrite(buffer.ToArray(), 0, buffer.ToArray().Length, null, null);
+            buffer = null;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     private static void SendDataToAll(byte[] data)
@@ -94,6 +175,16 @@ public class ServerTCP
             {
                 SendDataTo(i, data);
             }
+        }
+    }
+
+    private static void SendDataToAllBut(int connectionId, byte[] data)
+    {
+        for (int i = 0; i < Constants.GAMERULES.MAX_PLAYER_COUNT; i++)
+        {
+            if (connectionId != i)
+                if (Clients[i].socket != null)
+                    SendDataTo(i, data);
         }
     }
 
@@ -125,6 +216,34 @@ public class ServerTCP
         }
         //sends connectionID player data to everyone on server including self
         SendDataToAll(PlayerData(connectionID));
+        Console.WriteLine("Sent all Players in world to: " + connectionID);
+    }
+
+    public static void SendSpawnedObjects(int connectionID)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+
+        for (int i = 0; i < _data.Index; i++)
+        {
+            SpawnedPrefab sp = _data.spawnedPrefabs[i];
+            buffer.WriteLong((long)PacketType.NetSpawn);
+            
+            buffer.WriteInteger(sp.assignedID);
+
+            buffer.WriteString(sp.slug);
+
+            buffer.WriteFloat(sp.transform.position.x);
+            buffer.WriteFloat(sp.transform.position.y);
+            buffer.WriteFloat(sp.transform.position.z);
+
+            buffer.WriteFloat(sp.transform.rotation.x);
+            buffer.WriteFloat(sp.transform.rotation.y);
+            buffer.WriteFloat(sp.transform.rotation.z);
+            buffer.WriteFloat(sp.transform.rotation.w);
+
+            SendDataTo(connectionID, buffer.ToArray());
+            buffer.Dispose();
+        }
     }
 
     public static void SendPlayerLeft(int connectionID)
@@ -159,24 +278,7 @@ public class ServerTCP
         SendDataTo(connectionID, buffer.ToArray());
         buffer.Dispose();
     }
-
-    public static void SendPlayerMove(int connectionID, float x, float y, float z, float rotX, float rotY, float rotZ)
-    {
-        ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteLong((long)PacketType.PlayerMove);
-        buffer.WriteInteger(connectionID);
-        buffer.WriteFloat(x);
-        buffer.WriteFloat(y);
-        buffer.WriteFloat(z);
-
-        buffer.WriteFloat(rotX);
-        buffer.WriteFloat(rotY);
-        buffer.WriteFloat(rotZ);
-
-        SendDataToAll(buffer.ToArray());
-        buffer.Dispose();
-    }
-
+    
     public static void SendPlayerStats(int connectionID, float health, float hunger, float thirst)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -213,12 +315,17 @@ public class ServerTCP
         buffer.Dispose();
     }
 
-    public static void SendNetSpawnRequest(int connectionID, string slug, float x, float y, float z, float rotX, float rotY, float rotZ)
+    public static void SendNetSpawnRequest(int connectionID, string slug, float x, float y, float z, float rotX, float rotY, float rotZ, float rotW)
     {
+        _data.RegisterObject(slug, x, y, z, rotX, rotY, rotZ, rotW);
+
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteLong((long)PacketType.NetSpawn);
-        buffer.WriteInteger(connectionID);
+        
+        buffer.WriteInteger(_data.Index);
+
         buffer.WriteString(slug);
+
         buffer.WriteFloat(x);
         buffer.WriteFloat(y);
         buffer.WriteFloat(z);
@@ -226,10 +333,56 @@ public class ServerTCP
         buffer.WriteFloat(rotX);
         buffer.WriteFloat(rotY);
         buffer.WriteFloat(rotZ);
+        buffer.WriteFloat(rotW);
+
+        Console.WriteLine(_data.Index);
 
         SendDataToAll(buffer.ToArray());
         buffer.Dispose();
     }
+
+    public static void SendSyncPosition(int connectionID, long type, int syncObjID, float x, float y, float z)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+
+        buffer.WriteLong((long)PacketType.SyncPosition);
+        buffer.WriteLong(type);
+        buffer.WriteInteger(syncObjID);
+
+        buffer.WriteFloat(x);
+        buffer.WriteFloat(y);
+        buffer.WriteFloat(z);
+
+        _data.UpdateObject(syncObjID, new Vector3(x, y, z));
+
+        SendDataToAllBut(connectionID, buffer.ToArray());
+        buffer.Dispose();
+    }
+    public static void SendSyncRotation(int connectionID, long type, int syncObjID, float x, float y, float z, float w)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+
+        buffer.WriteLong((long)PacketType.SyncRotation);
+        buffer.WriteLong(type);
+        buffer.WriteInteger(syncObjID);
+
+        buffer.WriteFloat(x);
+        buffer.WriteFloat(y);
+        buffer.WriteFloat(z);
+        buffer.WriteFloat(w);
+
+        _data.UpdateObject(syncObjID, new Quaternion(x, y, z, w));
+
+        SendDataToAllBut(connectionID, buffer.ToArray());
+        buffer.Dispose();
+    }
+
+    public static void SendSyncAnimation(int connectionID, byte[] data)
+    {
+        SendDataToAllBut(connectionID, data);
+    }
+
+
 
     private static void LoadJsonItems()
     {

@@ -23,7 +23,7 @@ public class Players
             }
         }
 
-        return null;
+        return default(Player);
     }
     public int GetPlayerIndex(Player ply)
     {
@@ -61,85 +61,100 @@ public class Players
 }
 
 [JsonObject(MemberSerialization.OptIn)]
-public class Player
+public struct Player
 {
-    [JsonProperty("Name")]
-    private string _name;
+    [JsonProperty("DisplayName")]
+    private string _displayName;
     [JsonProperty("UID")]
     private string _uid;
-    [JsonProperty("PositionX")]
-    private float _posX;
-    [JsonProperty("PositionY")]
-    private float _posY;
-    [JsonProperty("PositionZ")]
-    private float _posZ;
+
+    [JsonProperty("Transform")]
+    private Transform _transform;
+
     [JsonProperty("Health")]
     private float _health;
     [JsonProperty("Hunger")]
     private float _hunger;
     [JsonProperty("Thirst")]
     private float _thirst;
+
+
     [JsonProperty("JustConnected")]
     private bool _justConnected;
 
     //Add Inventory Shit Later...
 
-    public string Name { get { return _name; } }
-    public string UID { get { return _uid; } }
-
-    public float PosX { get { return _posX; } }
-    public float PosY { get { return _posY; } }
-    public float PosZ { get { return _posZ; } }
+    public string DisplayName { get { return _displayName; } }
+    public string UID { get { return _uid; } set { _uid = value; } }
+    
+    public Transform Transform { get { return _transform; } }
 
     public float Health { get { return _health; } }
     public float Hunger { get { return _hunger; } }
     public float Thirst { get { return _thirst; } }
+
     public bool JustConnected { get { return _justConnected; } set { _justConnected = value; } }
 
-    public Player()
+    public void SetTransform(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float rotW)
     {
-        _health = Constants.GAMERULES.PLAYER_STARTING_HEALTH;
+        _transform.position.x = posX;
+        _transform.position.y = posY;
+        _transform.position.z = posZ;
+
+        _transform.rotation.x = rotX;
+        _transform.rotation.y = rotY;
+        _transform.rotation.z = rotZ;
+        _transform.rotation.w = rotW;
+    }
+    
+    public void Clear()
+    {
+        this = default(Player);
     }
 
-    public Player(string uid)
+    public static bool operator ==(Player p1, Player p2)
     {
-        _health = Constants.GAMERULES.PLAYER_STARTING_HEALTH;
-        _uid = uid;
+        return p1.Equals(p2);
     }
 
-    public Player(string name, float x, float y, float z, string uid, float health, float hunger, float thirst)
+    public static bool operator !=(Player p1, Player p2)
     {
-        _name = name;
-        _posX = x;
-        _posY = y;
-        _posZ = z;
-        _uid = uid;
-        _health = health;
-        _hunger = hunger;
-        _thirst = thirst;
+        return !p1.Equals(p2);
     }
+}
 
-    public void UpdateTransform(float x, float y, float z)
+public struct Vector3
+{
+    public float x;
+    public float y;
+    public float z;
+
+    public Vector3(float X, float Y, float Z)
     {
-        _posX = x;
-        _posY = y;
-        _posZ = z;
-
-        General.WritePlayersInfo();
+        x = X;
+        y = Y;
+        z = Z;
     }
+}
 
-    public void UpdateStats(float health, float hunger, float thirst)
+public struct Quaternion
+{
+    public float x;
+    public float y;
+    public float z;
+    public float w;
+
+    public Quaternion(float X, float Y, float Z, float W)
     {
-        _health = health;
-        _hunger = hunger;
-        _thirst = thirst;
-
-        General.WritePlayersInfo();
+        x = X;
+        y = Y;
+        z = Z;
+        w = W;
     }
+}
 
-    public void UpdateName(string name)
-    {
-        Console.WriteLine(_name + " changed their name to " + name);
-        _name = name;
-    }
+public struct Transform
+{
+    public Vector3 position;
+    public Quaternion rotation;
 }

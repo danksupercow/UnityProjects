@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ClientHandleData : MonoBehaviour
 {
@@ -21,11 +20,13 @@ public class ClientHandleData : MonoBehaviour
         packets.Add((long)PacketType.PlayerJoined, PACKET_PlayerJoined);
         packets.Add((long)PacketType.PlayerData, PACKET_PlayerData);
         packets.Add((long)PacketType.PlayerLeft, PACKET_PlayerLeft);
-        packets.Add((long)PacketType.PlayerMove, PACKET_PlayerMove);
         packets.Add((long)PacketType.ItemData, PACKET_ITEMDATA);
         packets.Add((long)PacketType.GameRules, PACKET_GameRules);
         packets.Add((long)PacketType.Damage, PACKET_Damage);
         packets.Add((long)PacketType.NetSpawn, PACKET_NetSpawn);
+        packets.Add((long)PacketType.SyncPosition, PACKET_SyncPosition);
+        packets.Add((long)PacketType.SyncRotation, PACKET_SyncRotation);
+        packets.Add((long)PacketType.SyncAnimation, PACKET_SyncAnimation);
         Console.Log("[Client] Network messages successfully initialized.");
     }
 
@@ -121,6 +122,7 @@ public class ClientHandleData : MonoBehaviour
 
     private static void PACKET_PlayerData(byte[] data)
     {
+        Console.Log("Recevied Player Data!");
         ByteBuffer buffer = new ByteBuffer();
         buffer.WriteBytes(data);
 
@@ -131,12 +133,21 @@ public class ClientHandleData : MonoBehaviour
         float y = buffer.ReadFloat();
         float z = buffer.ReadFloat();
 
-        GameObject ply = NetworkManager.GetPlayerObjectFromID(connectionID);
-        if(ply == null)
+        float rotX = buffer.ReadFloat();
+        float rotY = buffer.ReadFloat();
+        float rotZ = buffer.ReadFloat();
+        float rotW = buffer.ReadFloat();
+        GameObject ply = NetworkManager.FetchSpawnedPrefab(connectionID);
+        if(ply == null && NetworkManager.connectionID == -1)
         {
-            ply = NetworkManager.instance.InstantiatePlayer(connectionID);
-            ply.transform.position = new Vector3(x, y, z);
+            ply = NetworkManager.SpawnRegisteredPrefab("local_player", connectionID).gameObject;
         }
+        else if(ply == null && NetworkManager.connectionID != -1)
+        {
+            ply = NetworkManager.SpawnRegisteredPrefab("player", connectionID).gameObject;
+        }
+        ply.transform.position = new Vector3(x, y, z);
+        ply.transform.rotation = new Quaternion(rotX, rotY, rotZ, rotW);
     }
 
     private static void PACKET_PlayerLeft(byte[] data)
@@ -154,46 +165,18 @@ public class ClientHandleData : MonoBehaviour
 
         if(leftID == NetworkManager.connectionID)
         {
-            NetworkManager.SetMenuCameraActive(true);
-            Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
             Console.Log("You have been disconnected from the server. Reason: " + reason);
+            NetworkManager.CleanupScene();
         }
         else
         {
             //Possibly implement sleepers later...
-            Destroy(NetworkManager.GetPlayerObjectFromID(leftID));
+            NetworkManager.DestroySyncdPrefab(leftID);
             Console.Log("Client " + leftID + " has been disconnected from the server. Reason: " + reason);
         }
 
     }
-
-    private static void PACKET_PlayerMove(byte[] data)
-    {
-        ByteBuffer buffer = new ByteBuffer();
-        buffer.WriteBytes(data);
-
-        long packetnum = buffer.ReadLong();
-
-        int connectionID = buffer.ReadInteger();
-
-        if (connectionID == NetworkManager.connectionID)
-            return;
-
-        float x = buffer.ReadFloat();
-        float y = buffer.ReadFloat();
-        float z = buffer.ReadFloat();
-
-        float rotX = buffer.ReadFloat();
-        float rotY = buffer.ReadFloat();
-        float rotZ = buffer.ReadFloat();
-
-        GameObject player = NetworkManager.GetPlayerObjectFromID(connectionID);
-        player.transform.position = new Vector3(x,y,z);
-        player.transform.eulerAngles = new Vector3(General.WrapAngle(rotX), General.WrapAngle(rotY), General.WrapAngle(rotZ));
-
-        buffer.Dispose();
-    }
-
+    
     private static void PACKET_PlayerStats(byte[] data)
     {
         ByteBuffer buffer = new ByteBuffer();
@@ -255,7 +238,7 @@ public class ClientHandleData : MonoBehaviour
         buffer.WriteBytes(data);
 
         long packetnum = buffer.ReadLong();
-        int senderID = buffer.ReadInteger();
+        int assignedID = buffer.ReadInteger();
 
         string slug = buffer.ReadString();
 
@@ -266,20 +249,79 @@ public class ClientHandleData : MonoBehaviour
         float rotX = buffer.ReadFloat();
         float rotY = buffer.ReadFloat();
         float rotZ = buffer.ReadFloat();
-
+        float rotW = buffer.ReadFloat();
+        
         Vector3 pos = new Vector3(x, y, z);
-        Quaternion rot = Quaternion.Euler(rotX, rotY, rotZ);
+        Quaternion rot = new Quaternion(rotX, rotY, rotZ, rotW);
 
-        if(ObjectPooler.instance.poolDictionary[slug] != null)
+        Transform t = NetworkManager.SpawnRegisteredPrefab(slug, assignedID).transform;
+        t.position = pos;
+        t.rotation = rot;
+    }
+
+    private static void PACKET_SyncPosition(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        NetworkObjectType type = (NetworkObjectType)buffer.ReadLong();
+        int syncObjID = buffer.ReadInteger();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+
+        NetworkManager.UpdateSyncdObject(syncObjID, new Vector3(x, y, z));
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_SyncRotation(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        NetworkObjectType type = (NetworkObjectType)buffer.ReadLong();
+        int syncObjID = buffer.ReadInteger();
+
+        float x = buffer.ReadFloat();
+        float y = buffer.ReadFloat();
+        float z = buffer.ReadFloat();
+        float w = buffer.ReadFloat();
+
+        NetworkManager.UpdateSyncdObject(syncObjID, new Quaternion(x, y, z, w));
+
+        buffer.Dispose();
+    }
+
+    private static void PACKET_SyncAnimation(byte[] data)
+    {
+        ByteBuffer buffer = new ByteBuffer();
+        buffer.WriteBytes(data);
+        long packetnum = buffer.ReadLong();
+        AnimationType animationType = (AnimationType)buffer.ReadLong();
+        int syncID = buffer.ReadInteger();
+        string id = buffer.ReadString();
+        
+        switch (animationType)
         {
-            ObjectPooler.instance.SpawnFromPool(slug, pos, rot);
+            case AnimationType.Bool:
+                int i = buffer.ReadInteger();
+                bool b = (i == 1);
+                NetworkManager.UpdateSyncdObject(syncID, id, b);
+                break;
+            case AnimationType.Float:
+                float f = buffer.ReadFloat();
+                NetworkManager.UpdateSyncdObject(syncID, id, f);
+                break;
+            case AnimationType.Trigger:
+                NetworkManager.UpdateSyncdObject(syncID, id);
+                break;
+            default:
+                break;
         }
-        else
-        {
-            Transform t = NetworkManager.SpawnRegisteredPrefab(slug);
-            t.position = pos;
-            t.rotation = rot;
-        }
+        
+        buffer.Dispose();
     }
 
 }

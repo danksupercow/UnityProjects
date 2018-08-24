@@ -10,7 +10,10 @@
     ItemData,
     GameRules,
     Damage,
-    NetSpawn
+    NetSpawn,
+    SyncPosition,
+    SyncRotation,
+    SyncAnimation
 }
 
 public struct ItemType
@@ -40,4 +43,17 @@ public enum WeaponHoldType
 public enum AmmoType
 {
     NineMM
+}
+
+public enum NetworkObjectType
+{
+    Player,
+    SyncdObject
+}
+
+public enum AnimationType
+{
+    Bool = 1,
+    Float,
+    Trigger
 }
